@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CapyKadr</title>
+<meta name="description" content="Конструктор промтов для маскотов-капибар КуулКлевер">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ---------- вход ---------- -->
+<div class="gate" id="gate">
+  <div class="win" role="dialog" aria-modal="true" aria-labelledby="gateH">
+    <div class="logo"><img src="assets/logo-192.png" alt=""><div><h2 id="gateH">CapyKadr</h2><div class="hint" style="margin:0">Промты для семьи капибар КуулКлевер</div></div></div>
+    <div id="gateLoading" class="hint">Проверяем вход…</div>
+    <div id="gateForm" hidden>
+      <div class="seg" role="radiogroup" aria-label="Вход или регистрация">
+        <button type="button" role="radio" data-gm="in" aria-checked="true">Вход</button>
+        <button type="button" role="radio" data-gm="up" aria-checked="false">Регистрация</button>
+      </div>
+      <form id="gateF" novalidate>
+        <label class="f" for="gEmail">Почта</label>
+        <input id="gEmail" type="email" autocomplete="email" required>
+        <div id="gUpFields" hidden>
+          <label class="f" for="gName">Имя и фамилия</label>
+          <input id="gName" type="text" autocomplete="name" placeholder="Например: Аня Петрова">
+          <div class="f" style="font-size:13px;font-weight:700;color:var(--muted);margin:12px 0 6px">Роль</div>
+          <div class="roles" id="gRoles" role="radiogroup" aria-label="Роль">
+            <button type="button" class="chip" role="radio" aria-checked="true" data-r="Дизайнер">Дизайнер</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-r="Маркетолог">Маркетолог</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-r="Бренд-менеджер">Бренд-менеджер</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-r="Другое">Другое</button>
+          </div>
+        </div>
+        <label class="f" for="gPass" id="gPassL">Пароль</label>
+        <input id="gPass" type="password" autocomplete="current-password" required>
+        <p class="hint" id="gPassHint" hidden>Пароль команды из приглашения. Он же станет паролем вашего аккаунта.</p>
+        <p class="err" id="gErr" role="alert"></p>
+        <button class="btn primary" style="width:100%" type="submit" id="gBtn">Войти</button>
+        <p class="hint" id="gForgot">Забыли пароль? Напишите администратору CapyKadr.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- шапка ---------- -->
+<header class="top" id="top" hidden>
+  <a class="brand" href="#builder"><img src="assets/logo-192.png" alt=""><span>CapyKadr</span></a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="#builder" data-v="builder">Конструктор</a>
+    <a href="#gallery" data-v="gallery">Галерея</a>
+    <a href="#history" data-v="history">Мои промты</a>
+    <a href="#admin" data-v="admin" id="navAdmin" hidden>Админка</a>
+  </nav>
+  <div class="sp"></div>
+  <button class="ubtn" id="uBtn" aria-haspopup="true" aria-expanded="false"><span class="ava" id="uAva">?</span><span class="nmx" id="uName"></span></button>
+  <div class="menu" id="uMenu" hidden>
+    <div class="who"><b id="uMName"></b><span id="uMEmail"></span></div>
+    <button type="button" data-act="help">Как работать</button>
+    <button type="button" data-act="feedback">Сообщить о проблеме</button>
+    <button type="button" data-act="logout">Выйти</button>
+  </div>
+</header>
+
+<main id="app" hidden>
+  <!-- конструктор -->
+  <section class="page" id="v-builder" data-view="builder">
+    <h1>Кадр с капибарами за пару минут</h1>
+    <p class="lead">Выберите героев, одежду, позы и место. Расставьте их на холсте — CapyKadr соберёт промт и скажет, какие эталоны приложить в Nano Banana.</p>
+    <div class="seg mode" role="radiogroup" aria-label="Режим">
+      <button type="button" role="radio" data-mode="scene" aria-checked="true">Сцена</button>
+      <button type="button" role="radio" data-mode="ref" aria-checked="false">Новый эталон</button>
+    </div>
+    <div class="builder">
+      <div id="steps"></div>
+      <aside class="side">
+        <div class="stage" id="stageBox">
+          <header><b>Холст</b><button class="btn small" type="button" id="arrange">Расставить ровно</button></header>
+          <div class="canvas" id="canvas" aria-label="Холст: перетаскивайте персонажей"></div>
+          <p class="hint">Тяните героев мышкой или пальцем. Положение попадёт в промт.</p>
+        </div>
+        <div class="out" id="out"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- галерея -->
+  <section class="page" id="v-gallery" data-view="gallery" hidden>
+    <h1>Галерея</h1>
+    <p class="lead">Удачные кадры команды. Понравился — примените его настройки и сделайте свой.</p>
+    <div class="gfilter">
+      <div class="seg" role="radiogroup" aria-label="Сортировка" id="gSort">
+        <button type="button" role="radio" data-s="new" aria-checked="true">Новые</button>
+        <button type="button" role="radio" data-s="top" aria-checked="false">Полезные</button>
+        <button type="button" role="radio" data-s="mine" aria-checked="false">Мои</button>
+      </div>
+      <div class="row" id="gWho"></div>
+    </div>
+    <div id="gList"></div>
+  </section>
+
+  <!-- история -->
+  <section class="page" id="v-history" data-view="history" hidden>
+    <h1>Мои промты</h1>
+    <p class="lead">Каждый скопированный промт сохраняется здесь с настройками. Оцените результат и поделитесь удачным кадром в галерее.</p>
+    <div id="hList" class="hist"></div>
+  </section>
+
+  <!-- админка -->
+  <section class="page" id="v-admin" data-view="admin" hidden>
+    <h1>Админка</h1>
+    <p class="lead">Аналитика, эталоны маскота и доступ команды.</p>
+    <div id="aBody"></div>
+  </section>
+</main>
+
+<button class="fab" id="fab" type="button" hidden>Нашли проблему?</button>
+<div id="modal"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="vendor/supabase-2.45.4.js"></script>
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="builder.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
