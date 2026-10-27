@@ -1,12 +1,12 @@
-/* Справочники конструктора капибар КуулКлевер.
-   Источник: kuulklever_all_prompts.md + правки 26.10 (лапы, глаза, ресницы мамы, брюки папы, зелёный клевера).
+/* Справочники CapyKadr.
+   Источник: справочник промтов + правки 26.10 (лапы, глаза, ресницы мамы, брюки папы, зелёный клевера).
    draft:true — вариант без эталона-картинки или черновик, требует проверки. */
 window.CAPY = (() => {
 
 const PAL = {
   red: "#E0262F", offwhite: "#F3E4E4", beige: "#D9AE88", yellow: "#FFD21F",
   green: "#4CB848",      // кеды сына, зимние узоры, шарф сына
-  clover: "#80BA27",     // клевер и фирменный зелёный (по логотипу)
+  clover: "#80BA27",     // клевер на кепке и фирменный зелёный
   fur: "#E38A45", muzzle: "#B5562B", cream: "#FFF4E6", peach: "#FBD9A8"
 };
 
@@ -204,8 +204,8 @@ const LOCATIONS = [
   { id: "park", name: "Парк", en: "sunny city park with soft green lawns, rounded trees, a wooden bench and a winding path, softly blurred background" },
   { id: "picnic", name: "Пикник", en: "picnic on soft green grass with a red-and-white checkered blanket, a wicker basket and fruit, sunny day, softly blurred trees" },
   { id: "kitchen", name: "Кухня", en: "cozy bright home kitchen with light wooden cabinets, a round wooden table, a bowl of fruit and warm morning light from the window, softly blurred background" },
-  { id: "cafe", name: "Кафе КуулКлевер", en: `cozy cafe interior with warm wooden slatted wall panels, a mustard-orange cushioned bench, a round wooden table and a green neon clover sign (${PAL.clover}) on the wall, softly blurred background` },
-  { id: "shop", name: "Магазин КуулКлевер", en: `bright modern grocery store interior with light wooden shelves, warm lighting, green accents (${PAL.clover}) and green balloons, softly blurred background` }
+  { id: "cafe", name: "Кафе", en: `cozy cafe interior with warm wooden slatted wall panels, a mustard-orange cushioned bench, a round wooden table and a green neon clover sign (${PAL.clover}) on the wall, softly blurred background` },
+  { id: "shop", name: "Магазин", en: `bright modern grocery store interior with light wooden shelves, warm lighting, green accents (${PAL.clover}) and green balloons, softly blurred background` }
 ];
 
 const LIGHTS = [

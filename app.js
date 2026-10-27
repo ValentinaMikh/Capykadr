@@ -214,7 +214,7 @@ function renderSteps() {
     h += `<button type="button" class="chip" data-action="${a.id}" aria-pressed="${a.id === S.action}" ${why ? `aria-disabled="true" data-why="${esc(why)}"` : ""}>${esc(a.name)}</button>`;
   });
   h += `</div>`;
-  if (S.action === "product") h += `<label class="f" for="prodIn">Какой продукт</label><input id="prodIn" type="text" value="${esc(S.product)}" placeholder="например: зелёная упаковка йогурта КуулКлевер"><p class="hint">Надписи на упаковке нейросеть не пишет. Лучше приложите фото упаковки последним референсом.</p>`;
+  if (S.action === "product") h += `<label class="f" for="prodIn">Какой продукт</label><input id="prodIn" type="text" value="${esc(S.product)}" placeholder="например: зелёная упаковка йогурта"><p class="hint">Надписи на упаковке нейросеть не пишет. Лучше приложите фото упаковки последним референсом.</p>`;
   h += `</section>`;
 
   // 4. Место и свет
