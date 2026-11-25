@@ -105,44 +105,72 @@ async function capture(page, testInfo, name) {
     fullPage: true,
   });
 }
-test("login matches form structure and validates inputs", async ({
+test("login and registration match the latest Figma forms and validate inputs", async ({
   page,
 }, testInfo) => {
   await mockAccount(page, false);
   await page.goto("/");
   await expect(page.locator("#gateForm")).toBeVisible();
-  await expect(page.locator("#gName")).toBeVisible();
-  await expect(page.locator(".gate .logo")).toBeInViewport();
-  expect(
-    await page
-      .locator(".gate .logo")
-      .evaluate((el) => el.getBoundingClientRect().top),
-  ).toBe(44);
+  await expect(page.locator("#gName")).toBeHidden();
+  await page.evaluate(() => document.fonts.ready);
+  const box = (selector) => page.locator(selector).boundingBox();
+  expect((await box(".gate .logo")).y).toBe(44);
+  expect((await box("#gEmail")).y).toBe(333);
+  expect((await box("#gPass")).y).toBe(437);
+  expect(await box("#gBtn")).toMatchObject({
+    x: 518,
+    y: 569,
+    width: 404,
+    height: 58,
+  });
+  await capture(page, testInfo, "login");
   await page.locator("#gBtn").click();
   await expect(page.locator("#gErr")).toHaveText("Проверьте почту");
   await page.locator("#gEmail").fill("team@example.com");
   await page.locator("#gBtn").click();
   await expect(page.locator("#gErr")).toHaveText("Введите пароль");
-  const labels = await page.locator("#gateF label").allTextContents();
-  const loginButton = await page.locator("#gBtn").boundingBox();
   await page.locator('[data-gm="up"]').click();
-  expect(await page.locator("#gateF label").allTextContents()).toEqual(labels);
+  await expect(page.locator("#gName")).toBeVisible();
   await expect(page.locator("#gPassL")).toHaveText("Пароль");
-  const registrationButton = await page.locator("#gBtn").boundingBox();
-  expect(registrationButton.width / loginButton.width).toBeCloseTo(0.8, 2);
-  expect(registrationButton.height / loginButton.height).toBeCloseTo(0.8, 2);
-  await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({
-    path: testInfo.outputPath("registration.png"),
-    fullPage: true,
+  await expect(page.locator("#gForgot")).toBeVisible();
+  await expect(page.locator("#gConsentAction")).toHaveText(
+    "Зарегистрироваться",
+  );
+  expect((await box("#gName")).y).toBe(333);
+  expect((await box("#gEmail")).y).toBe(437);
+  expect((await box("#gPass")).y).toBe(541);
+  expect(await box("#gBtn")).toMatchObject({
+    x: 518,
+    y: 660,
+    width: 404,
+    height: 58,
   });
+  await page.locator("#gEmail").fill("");
+  await capture(page, testInfo, "registration");
+  await page.locator("#gEmail").fill("team@example.com");
+  await page.locator("#gPass").fill("example-password");
+  await page.locator("#gBtn").click();
+  await expect(page.locator("#gErr")).toContainText("Как вас зовут?");
+  await expect(page.locator("#gBtn")).toBeEnabled();
   await page.locator('[data-gm="in"]').click();
-  await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({
-    path: testInfo.outputPath("login.png"),
-    fullPage: true,
-  });
+  await expect(page.locator("#gName")).toBeHidden();
+  await expect(page.locator("#gErr")).toBeEmpty();
 });
+for (const width of [390, 1920])
+  test(`authentication forms fit ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 920 });
+    await mockAccount(page, false);
+    await page.goto("/");
+    await expect(page.locator("#gateForm")).toBeVisible();
+    for (const mode of ["in", "up"]) {
+      await page.locator(`[data-gm="${mode}"]`).click();
+      await expect(page.locator("#gBtn")).toBeInViewport();
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth),
+      ).toBeLessThanOrEqual(width);
+      await capture(page, testInfo, `auth-${mode}-${width}`);
+    }
+  });
 test("complete family, every season, scene, references, custom prompt and persistence", async ({
   page,
 }, testInfo) => {
@@ -263,7 +291,10 @@ for (const viewport of [
     const seasons = await page.locator(".season-list").boundingBox();
     expect(seasons.x).toBeCloseTo(349 + (viewport.width - 1920) / 2, 0);
     const choose = await page.locator("#chooseBtn").boundingBox();
-    expect(choose.y).toBeCloseTo(791, 0);
+    expect(choose.y + choose.height + 20).toBeCloseTo(
+      (await page.locator(".step-nav").boundingBox()).y,
+      0,
+    );
     const nav = await page.locator(".step-nav").boundingBox();
     expect(viewport.height - nav.y - nav.height).toBeCloseTo(38, 0);
     await capture(page, testInfo, "wide-season-" + viewport.width);
@@ -327,6 +358,10 @@ test("example photo opens an accessible preview with copy, favourite and apply",
   await expect(page.locator(".photo-like")).toHaveAttribute(
     "aria-pressed",
     "true",
+  );
+  await expect(page.locator(".photo-like img")).toHaveAttribute(
+    "src",
+    /34c49.svg$/,
   );
   await page.locator('[data-photo-action="apply"]').click();
   expect(
@@ -396,7 +431,11 @@ test("gallery grid, pagination, filters and publication modal retain their actio
   const first = page.locator(".gallery-card").first();
   const rect = await first.boundingBox();
   expect(rect.x).toBe(64);
-  expect(rect.y).toBe(220);
+  expect(rect.y).toBe(192);
+  await expect(page.locator("#galleryFilterToggle")).toHaveText("Фильтры");
+  expect(
+    await page.locator("#galleryFilterToggle").boundingBox(),
+  ).toMatchObject({ x: 73.5, y: 127, width: 152, height: 51 });
   await expect(first.locator(".gallery-likes")).toHaveText("15");
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({
@@ -413,11 +452,20 @@ test("gallery grid, pagination, filters and publication modal retain their actio
     path: testInfo.outputPath("gallery-modal.png"),
     fullPage: true,
   });
+  await expect(dialog.locator(".photo-like img")).toHaveAttribute(
+    "src",
+    /6cefc.svg$/,
+  );
   await dialog.locator(".photo-like").click();
   await expect(dialog.locator(".photo-like")).toHaveAttribute(
     "aria-pressed",
     "true",
   );
+  await expect(dialog.locator(".photo-like img")).toHaveAttribute(
+    "src",
+    /34c49.svg$/,
+  );
+  await capture(page, testInfo, "gallery-liked");
   await page.keyboard.press("Escape");
   await expect(first.locator(".gallery-likes")).toHaveText("16");
   await expect(first).toBeFocused();
@@ -483,3 +531,56 @@ test("wide screens with browser toolbars keep the step navigation visible", asyn
   );
   await capture(page, testInfo, "wide-short-window");
 });
+
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 1440, height: 920 },
+  { width: 1920, height: 1080 },
+]) {
+  test(`builder dock stays centred above the page while scrolling at ${viewport.width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize(viewport);
+    await openFamily(page);
+    const dock = page.locator("#builderDock");
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue(
+              "--builder-dock-height",
+            ),
+          ),
+        ),
+      )
+      .toBeGreaterThan(0);
+    const before = await dock.boundingBox();
+    expect(before.x + before.width / 2).toBeCloseTo(viewport.width / 2, 0);
+    expect(viewport.height - before.y - before.height).toBeCloseTo(
+      viewport.width >= 1920 ? 38 : viewport.width <= 900 ? 24 : 36,
+      0,
+    );
+    await page.evaluate(() => {
+      document.getElementById("steps").style.minHeight = "1800px";
+      window.scrollTo(0, 600);
+    });
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY))
+      .toBeGreaterThan(0);
+    const after = await dock.boundingBox();
+    expect(after.x).toBeCloseTo(before.x, 1);
+    expect(after.y).toBeCloseTo(before.y, 1);
+    await page.screenshot({
+      path: testInfo.outputPath("fixed-dock-" + viewport.width + ".png"),
+    });
+    await page.locator("#chooseBtn").click();
+    await expect(page.locator(".season-list")).toBeVisible();
+    await page.locator('[data-season="autumn"]').click();
+    await page.locator("#chooseBtn").click();
+    const actions = await page.locator("#builderActions").boundingBox(),
+      nav = await page.locator(".step-nav").boundingBox();
+    expect(actions.y + actions.height).toBeLessThanOrEqual(nav.y);
+    await page.locator('.nav [data-v="gallery"]').click();
+    await expect(dock).toBeHidden();
+  });
+}

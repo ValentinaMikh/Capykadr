@@ -995,7 +995,7 @@
       ? "CapyKadr · Пример генерации"
       : `${GAL.names[publication.user_id] || "Участник команды"} · ${fmtDate(publication.created_at)}`;
     modal(
-      `<div class="photo-image-frame"><img class="photo-full" src="${esc(publication.url || ART + "268b2.png")}" alt="${esc(publication.title || "Кадр")}"><button type="button" class="photo-like" data-photo-action="like" aria-label="Полезно" aria-pressed="${liked}">${art("8b823.svg")}</button></div>
+      `<div class="photo-image-frame"><img class="photo-full" src="${esc(publication.url || ART + "268b2.png")}" alt="${esc(publication.title || "Кадр")}"><button type="button" class="photo-like" data-photo-action="like" aria-label="Полезно" aria-pressed="${liked}">${art(liked ? "34c49.svg" : "6cefc.svg")}</button></div>
       <div class="photo-info"><p class="photo-meta">${esc(author)}</p><h2 class="photo-title" id="photo-modal-title" title="${esc(publication.title || "Без названия")}">${esc(publication.title || "Без названия")}</h2>
       <div class="photo-prompt"><pre tabindex="0" aria-label="Промт фотографии">${esc(publication.prompt)}</pre></div>
       <button type="button" class="photo-apply" data-photo-action="apply">Применить настройки</button>
@@ -1031,6 +1031,11 @@
                   : iLike(publication.id),
               ),
             );
+            button.querySelector("img").src =
+              ART +
+              (button.getAttribute("aria-pressed") === "true"
+                ? "34c49.svg"
+                : "6cefc.svg");
             button.disabled = false;
           }
         });
@@ -1369,13 +1374,14 @@
       .forEach((b) =>
         b.setAttribute("aria-checked", String(b.dataset.gm === m)),
       );
-    $("gUpFields").hidden = false;
-    $("gPassHint").hidden = m !== "up";
-    $("gForgot").hidden = m !== "in";
+    $("gate").dataset.mode = m;
+    $("gUpFields").hidden = m !== "up";
+    $("gName").required = m === "up";
+    $("gForgot").hidden = false;
     $("gPassL").textContent = "Пароль";
     $("gPass").autocomplete = m === "up" ? "new-password" : "current-password";
     $("gBtn").textContent = m === "up" ? "Зарегистрироваться" : "Войти";
-    $("gBtn").classList.toggle("registration", m === "up");
+    $("gConsentAction").textContent = $("gBtn").textContent;
     $("gErr").textContent = "";
   }
   document
@@ -1470,7 +1476,7 @@
     ADMIN = !!adm;
     await loadRefs();
     const nm = ME.name || ME.email.split("@")[0];
-    $("uAva").textContent = nm.trim()[0].toUpperCase();
+    $("uBtn").setAttribute("aria-label", `Меню профиля: ${nm}`);
     $("uName").textContent = nm;
     $("uMName").textContent = nm;
     $("uMEmail").textContent = ME.email;
@@ -1532,6 +1538,18 @@
     }
   });
   $("fab").addEventListener("click", feedbackDialog);
+
+  // Reserve the actual dock height, including wrapped actions on small screens.
+  if (window.ResizeObserver) {
+    new ResizeObserver(([entry]) => {
+      const height = entry.target.getBoundingClientRect().height;
+      if (height > 0)
+        document.documentElement.style.setProperty(
+          "--builder-dock-height",
+          `${height}px`,
+        );
+    }).observe($("builderDock"));
+  }
 
   /* =====================================================================
    СТАРТ

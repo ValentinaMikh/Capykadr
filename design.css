@@ -643,6 +643,8 @@ body {
   white-space: nowrap;
 }
 .gate .logo h2 {
+  padding: 0;
+  margin: 0;
   font-size: 32px;
   line-height: 0.87;
   font-weight: 700;
@@ -1168,6 +1170,8 @@ fieldset {
     top: 36px;
   }
   .gate .logo h2 {
+    padding: 0;
+    margin: 0;
     font-size: 28px;
   }
   .gate #gForgot {
@@ -1248,16 +1252,6 @@ fieldset {
   }
 }
 
-/* Registration CTA is 80% of the sign-in button in both dimensions. */
-.gate #gBtn.registration {
-  display: flex;
-  width: 80%;
-  height: 57.6px;
-  min-height: 57.6px;
-  padding-inline: 14.4px;
-  font-size: 25.6px;
-  margin-inline: auto;
-}
 /* Wide screens retain the Figma artwork sizes and add space around the content. */
 @media (min-width: 1920px) {
   #v-builder {
@@ -1451,9 +1445,6 @@ fieldset {
 }
 .photo-like img {
   display: block;
-}
-.photo-like[aria-pressed="true"] {
-  box-shadow: 0 0 0 3px #cad95a;
 }
 .photo-info {
   display: flex;
@@ -1686,4 +1677,114 @@ fieldset {
 .photo-prompt pre::-webkit-scrollbar-thumb {
   background: #cad95a;
   border-radius: 8px;
+}
+
+/* The action and step controls float together above the page content. */
+:root {
+  --builder-dock-bottom: 36px;
+}
+#v-builder {
+  padding-bottom: calc(
+    var(--builder-dock-height, 161px) +
+      max(var(--builder-dock-bottom), env(safe-area-inset-bottom, 0px)) + 24px
+  );
+}
+.builder-dock {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  bottom: max(var(--builder-dock-bottom), env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  pointer-events: none;
+}
+.builder-dock .builder-actions {
+  position: static;
+  left: auto;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  pointer-events: auto;
+}
+.builder-dock #builderNav {
+  margin: 0;
+  padding: 0;
+  pointer-events: auto;
+}
+.builder-dock .step-nav {
+  margin: 0 auto;
+}
+@media (min-width: 1920px) {
+  :root {
+    --builder-dock-bottom: 38px;
+  }
+}
+@media (max-width: 900px) {
+  :root {
+    --builder-dock-bottom: 24px;
+  }
+}
+
+/* Revised sign-in/registration and gallery designs. */
+.gate input {
+  display: block;
+}
+.gate[data-mode="in"] label[for="gEmail"] {
+  margin-top: 0;
+}
+.gate #gBtn {
+  height: 58px;
+  min-height: 58px;
+  font-size: 24px;
+}
+.gate .consent {
+  margin-top: 28px;
+}
+.gate #gForgot {
+  margin: 13px 0 26px;
+}
+.gate[data-mode="in"] #gForgot {
+  margin-top: 26px;
+}
+.ava img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+.gallery-toolbar {
+  height: 56px;
+}
+#galleryFilterToggle {
+  top: -9px;
+  left: 9.5px;
+  width: 152px;
+  height: 51px;
+  display: flex;
+  gap: 8px;
+  padding: 7px 24px 7px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 0.87;
+}
+.gallery-pagination {
+  margin-top: -7px;
+}
+@media (max-width: 900px) {
+  #galleryFilterToggle {
+    top: 0;
+    left: 0;
+  }
+  .gallery-toolbar {
+    height: 75px;
+  }
+}
+@media (max-width: 640px) {
+  .gallery-pagination {
+    margin-top: 20px;
+  }
 }
