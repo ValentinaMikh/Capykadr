@@ -62,18 +62,14 @@
               placeholder="Введите пароль"
               required
             />
-            <p class="hint" id="gPassHint" hidden>
-              Пароль команды из приглашения. Он же станет паролем вашего
-              аккаунта.
-            </p>
             <p class="err" id="gErr" role="alert"></p>
             <p class="hint" id="gForgot">
               Забыли пароль? Напишите <span>админу CapyKadr.</span>
             </p>
             <button class="btn primary" type="submit" id="gBtn">Войти</button>
             <p class="consent">
-              Нажимая кнопку «Войти» вы соглашаетесь<br />на обработку и сбор
-              ваших данных.
+              Нажимая кнопку “<span id="gConsentAction">Войти</span>” вы
+              соглашаетесь<br />на обработку и сбор ваших данных.
             </p>
           </form>
         </div>
@@ -101,7 +97,9 @@
         aria-haspopup="true"
         aria-expanded="false"
       >
-        <span class="ava" id="uAva">?</span><span class="nmx" id="uName"></span>
+        <span class="ava" id="uAva" aria-hidden="true"
+          ><img src="assets/figma/2f1ce.svg" alt="" /></span
+        ><span class="nmx" id="uName"></span>
       </button>
       <div class="menu" id="uMenu" hidden>
         <div class="who"><b id="uMName"></b><span id="uMEmail"></span></div>
@@ -132,7 +130,7 @@
             aria-expanded="false"
             aria-controls="galleryFilters"
           >
-            <img src="assets/figma/a155a.svg" alt="" />
+            <img src="assets/figma/2a98c.svg" alt="" /><span>Фильтры</span>
           </button>
         </div>
         <div class="gfilter" id="galleryFilters" hidden>
