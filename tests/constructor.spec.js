@@ -74,7 +74,7 @@ async function capture(page, testInfo, name) {
     await page.evaluate(() => ({
       font: getComputedStyle(
         document.querySelector(
-          ".character-name,.season-name,.prompt-panel pre",
+          ".character-name,.season-name,.prompt-panel pre,.nav a",
         ),
       ).fontFamily,
       faces: [...document.fonts].map((f) => ({
