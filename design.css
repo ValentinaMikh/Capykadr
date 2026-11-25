@@ -19,8 +19,8 @@
   --primary-ink: #292c27;
   --shadow: none;
   font-family: "Roboto Flex", Arial, sans-serif;
-  font-optical-sizing: none;
-  font-variation-settings: "opsz" 14;
+  font-optical-sizing: auto;
+  font-variation-settings: normal;
   --r-block: 48px;
   --r-card: 24px;
 }
