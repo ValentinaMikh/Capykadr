@@ -2028,3 +2028,48 @@ fieldset {
     padding-inline: 24px;
   }
 }
+
+.prompt-scrollbar {
+  display: none;
+}
+@media (max-width: 900px) {
+  .builder-dock:has(#copyBtn) .step-nav {
+    gap: 16px;
+  }
+  .result-layout .prompt-panel pre {
+    padding-right: 16.781px;
+    scrollbar-width: none;
+  }
+  .result-layout .prompt-panel pre::-webkit-scrollbar {
+    display: none;
+  }
+  .prompt-scrollbar {
+    display: block;
+    position: absolute;
+    right: 12.204px;
+    top: 37.757px;
+    bottom: 37.757px;
+    width: 4.577px;
+    border-radius: 6.102px;
+    background: #ffffff1a;
+    pointer-events: none;
+  }
+  .prompt-scrollbar i {
+    display: block;
+    position: absolute;
+    top: var(--prompt-thumb-offset, 0%);
+    left: 0.763px;
+    width: 3.051px;
+    height: var(--prompt-thumb-size, 100%);
+    border-radius: 6.102px;
+    background: #cad95a;
+  }
+  #v-builder:has(#copyBtn) {
+    --builder-dock-bottom: 36px;
+  }
+}
+@media (max-width: 640px) {
+  #v-builder:has(#copyBtn) {
+    --builder-dock-bottom: 44px;
+  }
+}

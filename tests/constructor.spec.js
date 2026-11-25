@@ -643,6 +643,15 @@ for (const viewport of [
     const pre = page.locator(".prompt-panel pre");
     await pre.evaluate((el) => (el.scrollTop = 300));
     expect(await pre.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await expect
+      .poll(() =>
+        page
+          .locator(".prompt-panel")
+          .evaluate((el) =>
+            parseFloat(el.style.getPropertyValue("--prompt-thumb-offset")),
+          ),
+      )
+      .toBeGreaterThan(0);
     const examplesGrid = page.locator(".result-layout .example-grid");
     await examplesGrid.evaluate((el) => (el.scrollLeft = 400));
     expect(await examplesGrid.evaluate((el) => el.scrollLeft)).toBeGreaterThan(
