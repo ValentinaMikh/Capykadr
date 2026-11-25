@@ -348,7 +348,7 @@
       STEP !== 3 && SEASON === "autumn"
         ? ["3e23f.png", "78299.png", "57b68.png"]
         : [];
-    return `<aside class="examples"><h2>Примеры генераций</h2><div class="example-grid">${Array.from({ length: 6 }, (_, i) => (images[i] ? `<button type="button" class="example-button" data-example="${images[i]}" aria-label="Открыть пример: ${EXAMPLE_PHOTOS[images[i]].title}">${art(images[i], "example-image", EXAMPLE_PHOTOS[images[i]].title)}</button>` : art("268b2.png", "example-image"))).join("")}</div></aside>`;
+    return `<aside class="examples"><h2>Примеры генераций</h2><div class="example-grid" tabindex="0" role="group" aria-label="Примеры генераций">${Array.from({ length: 6 }, (_, i) => (images[i] ? `<button type="button" class="example-button" data-example="${images[i]}" aria-label="Открыть пример: ${EXAMPLE_PHOTOS[images[i]].title}">${art(images[i], "example-image", EXAMPLE_PHOTOS[images[i]].title)}</button>` : art("268b2.png", "example-image"))).join("")}</div></aside>`;
   }
   function familyPreview() {
     return `<div class="family-preview ${esc(SEASON)}"><div class="family-art">${WHO.filter(
@@ -373,7 +373,7 @@
       h = `<div class="scene-grid">${SCENES.map((s) => `<button type="button" class="scene-choice" data-scene="${s.id}" aria-pressed="${SCENE === s.id}"><span class="scene-image">${art(s.id === "cafe" ? "914cd.png" : "268b2.png", "", s.name)}${SCENE === s.id ? `<span class="scene-check">${art("f4244.svg")}</span>` : ""}</span><span>${s.name}</span></button>`).join("")}${Array.from({ length: 4 }, () => '<div class="scene-empty" aria-hidden="true"></div>').join("")}</div>`;
     } else {
       LAST = B.build(S);
-      h = `<div class="result-layout"><aside class="reference-panel"><h2>Прикрепите к промту</h2><div class="reference-grid">${LAST.refs.map((r, i) => `<button type="button" data-dl="${i}" aria-label="Скачать: ${esc(r.label)}" title="${esc(r.label)}"><img src="${esc(REFURL[r.key] || ART + (REF_ART[r.key] || REF_ART[`${r.key.split("-")[0]}-base`]))}" alt="${esc(r.label)}"><span>${art("37a62.svg")}</span></button>`).join("")}${Array.from({ length: Math.max(0, 6 - LAST.refs.length) }, () => '<div class="reference-empty" aria-hidden="true"></div>').join("")}</div></aside><div class="prompt-panel"><pre tabindex="0" aria-label="Промт">${esc(LAST.prompt)}</pre>${LAST.issues.length ? `<p role="alert" class="err">${LAST.issues.map(esc).join(". ")}</p>` : ""}</div>${examples()}</div>`;
+      h = `<div class="result-layout"><aside class="reference-panel"><h2>Прикрепите к промту</h2><div class="reference-grid" tabindex="0" role="group" aria-label="Референсы для скачивания">${LAST.refs.map((r, i) => `<button type="button" data-dl="${i}" aria-label="Скачать: ${esc(r.label)}" title="${esc(r.label)}"><img src="${esc(REFURL[r.key] || ART + (REF_ART[r.key] || REF_ART[`${r.key.split("-")[0]}-base`]))}" alt="${esc(r.label)}"><span><picture><source media="(max-width: 640px)" srcset="${ART}9cf08.svg"><source media="(max-width: 900px)" srcset="${ART}${i < 2 ? "70550.svg" : "d156f.svg"}">${art("37a62.svg")}</picture></span></button>`).join("")}${Array.from({ length: Math.max(0, 6 - LAST.refs.length) }, () => '<div class="reference-empty" aria-hidden="true"></div>').join("")}</div></aside><div class="prompt-panel"><pre tabindex="0" aria-label="Промт">${esc(LAST.prompt)}</pre>${LAST.issues.length ? `<p role="alert" class="err">${LAST.issues.map(esc).join(". ")}</p>` : ""}</div>${examples()}</div>`;
     }
     el.innerHTML = h;
     $("builderActions").innerHTML =
