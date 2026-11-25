@@ -1202,3 +1202,36 @@ fieldset {
     grid-template-rows: 268px 268px;
   }
 }
+.character-choice[aria-pressed="true"].dad .character-image {
+  background: linear-gradient(#f4ffa2, #c9d56c);
+}
+.character-choice[aria-pressed="true"].mom .character-image {
+  background: linear-gradient(#fec7d7, #f38fa8);
+}
+.character-choice[aria-pressed="true"].son .character-image {
+  background: linear-gradient(#ffdfa4, #fcc35a);
+}
+.character-name,
+.season-name,
+.scene-choice {
+  font-variation-settings:
+    "opsz" 14,
+    "wght" 1000;
+}
+.brand span {
+  display: block;
+}
+.gate .win {
+  position: static;
+}
+.gate .win input {
+  background: #2c2f33;
+}
+.gate .seg {
+  background: #2c2f33;
+}
+@media (min-width: 901px) {
+  .result-layout {
+    height: 537px;
+  }
+}

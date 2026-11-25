@@ -70,6 +70,20 @@ async function assetsLoad(page) {
 }
 async function capture(page, testInfo, name) {
   await page.evaluate(() => document.fonts.ready);
+  console.log(
+    await page.evaluate(() => ({
+      font: getComputedStyle(
+        document.querySelector(
+          ".character-name,.season-name,.prompt-panel pre",
+        ),
+      ).fontFamily,
+      faces: [...document.fonts].map((f) => ({
+        family: f.family,
+        status: f.status,
+        weight: f.weight,
+      })),
+    })),
+  );
   await assetsLoad(page);
   await page.screenshot({
     path: testInfo.outputPath(name + ".png"),
@@ -83,6 +97,12 @@ test("login matches form structure and validates inputs", async ({
   await page.goto("/");
   await expect(page.locator("#gateForm")).toBeVisible();
   await expect(page.locator("#gName")).toBeVisible();
+  await expect(page.locator(".gate .logo")).toBeInViewport();
+  expect(
+    await page
+      .locator(".gate .logo")
+      .evaluate((el) => el.getBoundingClientRect().top),
+  ).toBe(44);
   await page.locator("#gBtn").click();
   await expect(page.locator("#gErr")).toHaveText("Проверьте почту");
   await page.locator("#gEmail").fill("team@example.com");

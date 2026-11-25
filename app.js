@@ -243,7 +243,7 @@
   const art = (name, cls = "", alt = "") =>
     `<img src="${ART + name}" class="${cls}" alt="${esc(alt)}">`;
   const mark = (on) =>
-    `<span class="pick-mark">${on ? art("229a2.svg") : art("9e3f4.svg", "plus")}</span>`;
+    `<span class="pick-mark">${on ? art("43792.svg") : art("9e3f4.svg", "plus")}</span>`;
   function arrange() {
     const xs =
       S.chars.length === 1
@@ -313,7 +313,9 @@
   }
   function examples() {
     const images =
-      SEASON === "autumn" ? ["3e23f.png", "78299.png", "57b68.png"] : [];
+      STEP !== 3 && SEASON === "autumn"
+        ? ["3e23f.png", "78299.png", "57b68.png"]
+        : [];
     return `<aside class="examples"><h2>Примеры генераций</h2><div class="example-grid">${Array.from({ length: 6 }, (_, i) => art(images[i] || "268b2.png", "example-image", images[i] ? "Пример осенней генерации" : "")).join("")}</div></aside>`;
   }
   function familyPreview() {
