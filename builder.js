@@ -199,5 +199,5 @@ function instructions(refs, fr, multi) {
   return s;
 }
 
-window.CapyBuilder = { build, buildReference, check, poseAllowed, actionAllowed };
+window.CapyBuilder = { build, buildReference, check, poseAllowed, actionAllowed, sceneSeason };
 })();
