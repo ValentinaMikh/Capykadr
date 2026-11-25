@@ -1252,34 +1252,6 @@ fieldset {
   }
 }
 
-/* Wide screens retain the Figma artwork sizes and add space around the content. */
-@media (min-width: 1920px) {
-  #v-builder {
-    min-height: calc(100svh - 136px);
-    padding-top: clamp(0px, calc(100svh - 922px), 68px);
-    padding-bottom: 38px;
-    display: flex;
-    flex-direction: column;
-  }
-  #steps {
-    position: relative;
-    left: 18px;
-    flex: none;
-  }
-  .builder-actions {
-    position: relative;
-    left: 18px;
-    flex: none;
-    margin-top: clamp(28px, calc(100svh - 872px), 50px);
-  }
-  #builderNav {
-    margin-top: auto;
-    padding-top: 20px;
-  }
-  .step-nav {
-    margin-top: 0;
-  }
-}
 .example-button {
   padding: 0;
   border: 0;
@@ -2071,5 +2043,45 @@ fieldset {
 @media (max-width: 640px) {
   #v-builder:has(#copyBtn) {
     --builder-dock-bottom: 44px;
+  }
+}
+
+/* Center the complete working area in the viewport on large displays. */
+@media (min-width: 1920px) {
+  #v-builder {
+    min-height: calc(100svh - 136px);
+    padding-top: 0;
+    padding-bottom: 136px;
+    display: grid;
+    place-items: center;
+  }
+  #steps {
+    position: static;
+    min-height: 0;
+    width: 100%;
+    display: grid;
+    place-items: center;
+  }
+  .character-grid {
+    width: 1161px;
+  }
+  .season-layout {
+    width: 1290px;
+    height: 625px;
+    margin: 0;
+  }
+  .result-layout {
+    width: 1262px;
+    height: 546px;
+    margin: 0;
+  }
+  .season-layout .examples,
+  .result-layout .examples {
+    transform: none;
+  }
+  .scene-grid {
+    width: 1285px;
+    height: auto;
+    margin: 0;
   }
 }

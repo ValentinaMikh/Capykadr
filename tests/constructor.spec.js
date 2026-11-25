@@ -277,19 +277,19 @@ for (const viewport of [
   { width: 2560, height: 1440 },
   { width: 3840, height: 2160 },
 ]) {
-  test(`wide constructor follows the Figma anchors at ${viewport.width}`, async ({
+  test(`wide working area stays centred in the viewport at ${viewport.width}`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize(viewport);
     await openFamily(page);
     await page.locator("#chooseBtn").click();
     const preview = await page.locator(".family-preview").boundingBox();
-    expect(preview.x).toBeCloseTo(708 + (viewport.width - 1920) / 2, 0);
-    expect(preview.y).toBeCloseTo(204, 0);
+    expect(preview.x).toBeCloseTo((viewport.width - 1290) / 2 + 359, 0);
+    expect(preview.y).toBeCloseTo((viewport.height - 625) / 2, 0);
     expect(preview.width).toBe(548);
     expect(preview.height).toBe(537);
     const seasons = await page.locator(".season-list").boundingBox();
-    expect(seasons.x).toBeCloseTo(349 + (viewport.width - 1920) / 2, 0);
+    expect(seasons.x).toBeCloseTo((viewport.width - 1290) / 2, 0);
     const choose = await page.locator("#chooseBtn").boundingBox();
     expect(choose.y + choose.height + 20).toBeCloseTo(
       (await page.locator(".step-nav").boundingBox()).y,
@@ -297,9 +297,27 @@ for (const viewport of [
     );
     const nav = await page.locator(".step-nav").boundingBox();
     expect(viewport.height - nav.y - nav.height).toBeCloseTo(38, 0);
+    const seasonArea = await page.locator(".season-layout").boundingBox();
+    expect(seasonArea.x + seasonArea.width / 2).toBeCloseTo(
+      viewport.width / 2,
+      0,
+    );
+    expect(seasonArea.y + seasonArea.height / 2).toBeCloseTo(
+      viewport.height / 2,
+      0,
+    );
     await capture(page, testInfo, "wide-season-" + viewport.width);
     for (const step of [0, 2, 3]) {
       await page.locator(`[data-step="${step}"]`).click();
+      const workingArea = await page.locator("#steps > div").boundingBox();
+      expect(workingArea.x + workingArea.width / 2).toBeCloseTo(
+        viewport.width / 2,
+        0,
+      );
+      expect(workingArea.y + workingArea.height / 2).toBeCloseTo(
+        viewport.height / 2,
+        0,
+      );
       await capture(page, testInfo, "wide-step-" + step + "-" + viewport.width);
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth),
