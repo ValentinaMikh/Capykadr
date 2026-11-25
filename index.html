@@ -121,12 +121,19 @@
 
       <!-- галерея -->
       <section class="page" id="v-gallery" data-view="gallery" hidden>
-        <h1>Галерея</h1>
-        <p class="lead">
-          Удачные кадры команды. Понравился — примените его настройки и сделайте
-          свой.
-        </p>
-        <div class="gfilter">
+        <h1 class="sr">Галерея</h1>
+        <div class="gallery-toolbar">
+          <button
+            type="button"
+            id="galleryFilterToggle"
+            aria-label="Фильтры галереи"
+            aria-expanded="false"
+            aria-controls="galleryFilters"
+          >
+            <img src="assets/figma/a155a.svg" alt="" />
+          </button>
+        </div>
+        <div class="gfilter" id="galleryFilters" hidden>
           <div class="seg" role="radiogroup" aria-label="Сортировка" id="gSort">
             <button type="button" role="radio" data-s="new" aria-checked="true">
               Новые
@@ -150,7 +157,8 @@
           </div>
           <div class="row" id="gWho"></div>
         </div>
-        <div id="gList"></div>
+        <div id="gList" aria-live="polite"></div>
+        <div id="galleryPagination"></div>
       </section>
 
       <!-- история -->

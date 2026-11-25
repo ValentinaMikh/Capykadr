@@ -1,7 +1,7 @@
 const { test, expect } = require("@playwright/test");
-async function mockAccount(page, signedIn = true) {
+async function mockAccount(page, signedIn = true, gallery = {}) {
   await page.addInitScript(
-    ({ signedIn }) => {
+    ({ signedIn, gallery }) => {
       window.__inserts = [];
       const user = {
         id: "test-user",
@@ -31,7 +31,20 @@ async function mockAccount(page, signedIn = true) {
               signInWithPassword: async () => ({ data: { user }, error: null }),
             },
             from: (name) => ({
-              select: () => query(name === "profiles" ? { name: "Дарья" } : []),
+              select: (fields) =>
+                query(
+                  name === "profiles"
+                    ? fields === "name,role"
+                      ? { name: "Дарья" }
+                      : gallery.profiles || []
+                    : name === "publications"
+                      ? gallery.publications || []
+                      : name === "publication_likes"
+                        ? gallery.likes || []
+                        : [],
+                ),
+              delete: () => query(),
+              update: () => query(),
               insert: (row) => {
                 window.__inserts.push({ name, row });
                 return query();
@@ -39,14 +52,23 @@ async function mockAccount(page, signedIn = true) {
             }),
             rpc: async () => ({ data: true }),
             storage: {
-              from: () => ({ createSignedUrls: async () => ({ data: [] }) }),
+              from: () => ({
+                createSignedUrls: async (paths) => ({
+                  data: paths.map((path) => ({
+                    signedUrl: path.startsWith("assets/")
+                      ? path
+                      : "assets/figma/268b2.png",
+                  })),
+                }),
+                remove: async () => ({ error: null }),
+              }),
             },
           }),
         }),
         set: () => {},
       });
     },
-    { signedIn },
+    { signedIn, gallery },
   );
 }
 async function openFamily(page) {
@@ -220,4 +242,244 @@ test("deselecting every character blocks continuation", async ({ page }) => {
   await expect(page.locator('[data-step="1"]')).toBeDisabled();
   await page.reload();
   await expect(page.locator("#chooseBtn")).toBeDisabled();
+});
+
+for (const viewport of [
+  { width: 1920, height: 1080 },
+  { width: 2560, height: 1440 },
+  { width: 3840, height: 2160 },
+]) {
+  test(`wide constructor follows the Figma anchors at ${viewport.width}`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize(viewport);
+    await openFamily(page);
+    await page.locator("#chooseBtn").click();
+    const preview = await page.locator(".family-preview").boundingBox();
+    expect(preview.x).toBeCloseTo(708 + (viewport.width - 1920) / 2, 0);
+    expect(preview.y).toBeCloseTo(204, 0);
+    expect(preview.width).toBe(548);
+    expect(preview.height).toBe(537);
+    const seasons = await page.locator(".season-list").boundingBox();
+    expect(seasons.x).toBeCloseTo(349 + (viewport.width - 1920) / 2, 0);
+    const choose = await page.locator("#chooseBtn").boundingBox();
+    expect(choose.y).toBeCloseTo(791, 0);
+    const nav = await page.locator(".step-nav").boundingBox();
+    expect(viewport.height - nav.y - nav.height).toBeCloseTo(38, 0);
+    await capture(page, testInfo, "wide-season-" + viewport.width);
+    for (const step of [0, 2, 3]) {
+      await page.locator(`[data-step="${step}"]`).click();
+      await capture(page, testInfo, "wide-step-" + step + "-" + viewport.width);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth),
+      ).toBeLessThanOrEqual(viewport.width);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollHeight),
+      ).toBeLessThanOrEqual(viewport.height);
+    }
+  });
+}
+
+test("example photo opens an accessible preview with copy, favourite and apply", async ({
+  page,
+}, testInfo) => {
+  await openFamily(page);
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-season="autumn"]').click();
+  const example = page.locator('[data-example="3e23f.png"]');
+  await example.click();
+  const dialog = page.getByRole("dialog", {
+    name: "Урожай яблок",
+    exact: true,
+  });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator(".photo-full")).toHaveAttribute(
+    "src",
+    "assets/figma/3e23f.png",
+  );
+  await expect(dialog.locator(".photo-prompt")).toContainText(
+    "a wicker basket filled with red and green apples",
+  );
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({
+    path: testInfo.outputPath("example-modal.png"),
+    fullPage: true,
+  });
+  await page.evaluate(() => {
+    navigator.clipboard.writeText = async (t) => {
+      window.__copied = t;
+    };
+  });
+  await dialog.locator('[data-photo-action="copy"]').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__copied))
+    .toContain("wicker basket");
+  await dialog.locator('[data-photo-action="like"]').click();
+  await expect(dialog.locator(".photo-like")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(example).toBeFocused();
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
+  await example.click();
+  await expect(page.locator(".photo-like")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.locator('[data-photo-action="apply"]').click();
+  expect(
+    await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("capykadr-state-v1")).chars.map(
+        (c) => c.who,
+      ),
+    ),
+  ).toEqual(["son"]);
+  await expect(page.locator(".prompt-panel pre")).toContainText(
+    "wicker basket",
+  );
+});
+
+function galleryFixture() {
+  const state = {
+    chars: [
+      {
+        who: "dad",
+        outfit: "dad-autumn",
+        pose: "hold",
+        emo: "auto",
+        x: 50,
+        y: 86,
+        object: "a cake",
+      },
+    ],
+    location: "cafe",
+    light: "golden",
+    frame: "1:1",
+    camera: "auto",
+    textzone: "none",
+    action: "none",
+    product: "",
+    extra: "",
+    designSeason: "autumn",
+    designScene: "custom",
+  };
+  const prompt =
+    "Use the attached image as a strict capybara character reference. Keep the same face, outfit, proportions and 3D style. " +
+    "A capybara holding a cake in a cozy cafe. ".repeat(30);
+  return {
+    publications: Array.from({ length: 21 }, (_, i) => ({
+      id: "pub-" + i,
+      user_id: "author",
+      title: i ? "Работа " + (i + 1) : "Покупка торта",
+      image_path: "assets/figma/268b2.png",
+      created_at: "2026-10-27T08:30:00Z",
+      state,
+      prompt,
+      hidden: false,
+    })),
+    likes: Array.from({ length: 15 }, (_, i) => ({
+      pub_id: "pub-0",
+      user_id: "member-" + i,
+    })),
+    profiles: [{ id: "author", name: "Valentina" }],
+  };
+}
+test("gallery grid, pagination, filters and publication modal retain their actions", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1074 });
+  await mockAccount(page, true, galleryFixture());
+  await page.goto("/#gallery");
+  await expect(page.locator(".gallery-card")).toHaveCount(15);
+  const first = page.locator(".gallery-card").first();
+  const rect = await first.boundingBox();
+  expect(rect.x).toBe(64);
+  expect(rect.y).toBe(220);
+  await expect(first.locator(".gallery-likes")).toHaveText("15");
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({
+    path: testInfo.outputPath("gallery.png"),
+    fullPage: true,
+  });
+  await first.click();
+  const dialog = page.getByRole("dialog", {
+    name: "Покупка торта",
+    exact: true,
+  });
+  await expect(dialog).toBeVisible();
+  await page.screenshot({
+    path: testInfo.outputPath("gallery-modal.png"),
+    fullPage: true,
+  });
+  await dialog.locator(".photo-like").click();
+  await expect(dialog.locator(".photo-like")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.keyboard.press("Escape");
+  await expect(first.locator(".gallery-likes")).toHaveText("16");
+  await expect(first).toBeFocused();
+  await page.locator('[data-gallery-page="2"]').click();
+  await expect(page.locator(".gallery-card")).toHaveCount(6);
+  await page.locator("#galleryFilterToggle").click();
+  await expect(page.locator("#galleryFilters")).toBeVisible();
+  await page.locator('[data-s="mine"]').click();
+  await expect(page.locator(".gallery-card")).toHaveCount(0);
+  await page.locator('[data-s="new"]').click();
+  await expect(page.locator(".gallery-card")).toHaveCount(15);
+  await page.locator("#galleryFilterToggle").click();
+  await page.locator(".gallery-card").first().click();
+  await page.locator('[data-photo-action="apply"]').click();
+  await expect(page.locator(".prompt-panel pre")).toContainText(
+    "cozy cafe interior",
+  );
+});
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 1920, height: 1080 },
+  { width: 2560, height: 1440 },
+])
+  test(`gallery and photo preview fit ${viewport.width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize(viewport);
+    await mockAccount(page, true, galleryFixture());
+    await page.goto("/#gallery");
+    await expect(page.locator(".gallery-card")).toHaveCount(15);
+    await page.locator(".gallery-card").first().click();
+    await expect(page.locator(".photo-modal")).toBeVisible();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(viewport.width);
+    const image = await page.locator(".photo-full").boundingBox();
+    expect(image.width).toBeCloseTo(image.height, 0);
+    await page.evaluate(() => document.fonts.ready);
+    await page.screenshot({
+      path: testInfo.outputPath("photo-modal-" + viewport.width + ".png"),
+      fullPage: true,
+    });
+    await page.keyboard.press("Tab");
+    expect(
+      await page.evaluate(
+        () => !!document.activeElement.closest(".photo-modal"),
+      ),
+    ).toBe(true);
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".photo-modal")).toHaveCount(0);
+  });
+
+test("wide screens with browser toolbars keep the step navigation visible", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 1920, height: 900 });
+  await openFamily(page);
+  await page.locator("#chooseBtn").click();
+  const nav = await page.locator(".step-nav").boundingBox();
+  expect(900 - nav.y - nav.height).toBeCloseTo(38, 0);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(
+    900,
+  );
+  await capture(page, testInfo, "wide-short-window");
 });

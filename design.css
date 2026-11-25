@@ -1258,3 +1258,432 @@ fieldset {
   font-size: 25.6px;
   margin-inline: auto;
 }
+/* Wide screens retain the Figma artwork sizes and add space around the content. */
+@media (min-width: 1920px) {
+  #v-builder {
+    min-height: calc(100svh - 136px);
+    padding-top: clamp(0px, calc(100svh - 922px), 68px);
+    padding-bottom: 38px;
+    display: flex;
+    flex-direction: column;
+  }
+  #steps {
+    position: relative;
+    left: 18px;
+    flex: none;
+  }
+  .builder-actions {
+    position: relative;
+    left: 18px;
+    flex: none;
+    margin-top: clamp(28px, calc(100svh - 872px), 50px);
+  }
+  #builderNav {
+    margin-top: auto;
+    padding-top: 20px;
+  }
+  .step-nav {
+    margin-top: 0;
+  }
+}
+.example-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 48px;
+}
+.example-button .example-image {
+  display: block;
+}
+#v-gallery {
+  padding-bottom: 44px;
+}
+.gallery-toolbar {
+  height: 84px;
+  position: relative;
+}
+#galleryFilterToggle {
+  position: absolute;
+  top: -13px;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 69px;
+  height: 69px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 40px;
+  background: #3a3d41;
+}
+#galleryFilterToggle img {
+  display: block;
+}
+#galleryFilters {
+  margin: 0 0 24px;
+  padding: 20px;
+  background: #2c2f33;
+  border-radius: 24px;
+}
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px 14px;
+}
+.gallery-card {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  border-radius: 48px;
+  aspect-ratio: 251/248;
+  background: #2c2f33;
+  color: white;
+  min-width: 0;
+}
+.gallery-card.hid {
+  opacity: 0.5;
+}
+.gallery-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gallery-card-shade {
+  position: absolute;
+  height: 35.484%;
+  inset: auto 0 0;
+  background: linear-gradient(transparent, #2c2f34);
+}
+.gallery-likes {
+  position: absolute;
+  bottom: 19px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 0.87;
+}
+.gallery-likes img {
+  display: block;
+}
+.gallery-pagination {
+  position: sticky;
+  bottom: 44px;
+  margin: -35px auto 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
+  padding: 7px 40px;
+  gap: 16px;
+  background: #ffffff29;
+  backdrop-filter: blur(12px);
+  border-radius: 40px;
+}
+#galleryPagination {
+  display: contents;
+}
+.gallery-pagination button,
+.page-gap {
+  display: grid;
+  place-items: center;
+  width: 55px;
+  height: 55px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: 32px;
+  line-height: 0.87;
+  font-weight: 700;
+  color: #fff;
+}
+.gallery-pagination button[aria-current="page"] {
+  color: #cad95a;
+}
+.photo-overlay {
+  background: #15181d33;
+  backdrop-filter: blur(8px);
+}
+.win.photo-modal {
+  position: relative;
+  display: grid;
+  grid-template-columns: 487px 341px;
+  gap: 23px;
+  width: 908px;
+  height: 536px;
+  padding: 21px 34px 28px 23px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  background: #15181d;
+  border-radius: 64px;
+}
+.photo-modal:focus {
+  outline: none;
+}
+.photo-image-frame {
+  position: relative;
+  width: 487px;
+  height: 487px;
+}
+.photo-full {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 48px;
+}
+.photo-like {
+  position: absolute;
+  left: 21px;
+  bottom: 17px;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+}
+.photo-like img {
+  display: block;
+}
+.photo-like[aria-pressed="true"] {
+  box-shadow: 0 0 0 3px #cad95a;
+}
+.photo-info {
+  display: flex;
+  flex-direction: column;
+  padding-top: 13px;
+  min-width: 0;
+  height: 487px;
+}
+.photo-meta {
+  font-size: 16px;
+  line-height: 1;
+  height: 16px;
+  margin: 0 17px;
+  padding-right: 35px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.photo-modal .photo-title {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 0.87;
+  height: 28px;
+  padding: 0;
+  margin: 11px 17px 22px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: none;
+}
+.photo-prompt {
+  height: 268px;
+  padding: 24px 16px 24px 24px;
+  background: #2c2f33;
+  border-radius: 24px;
+  flex: none;
+}
+.photo-prompt pre {
+  margin: 0;
+  height: 100%;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font:
+    16px/1 "Roboto Flex",
+    Arial,
+    sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: #cad95a #ffffff1a;
+  padding-right: 16px;
+}
+.photo-apply,
+.photo-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  width: 100%;
+  flex: none;
+  border: 0;
+  padding: 0 20px;
+  border-radius: 66.667px;
+  font-size: 21.333px;
+  font-weight: 700;
+  line-height: 0.87;
+}
+.photo-apply {
+  margin-top: 22px;
+  background: #3a3d41;
+  color: white;
+}
+.photo-copy {
+  margin-top: 11px;
+  gap: 24px;
+  background: #cad95a;
+  color: #292c27;
+}
+.photo-copy img {
+  display: block;
+}
+.photo-modal .x {
+  top: 21px;
+  right: 28px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: #3a3d41;
+  display: grid;
+  place-items: center;
+  z-index: 1;
+}
+.photo-modal .x img {
+  display: block;
+  transform: rotate(-45deg);
+}
+@media (max-width: 1100px) {
+  .gallery-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 950px) and (min-width: 641px) {
+  .win.photo-modal {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 20px;
+    height: auto;
+    border-radius: 40px;
+    padding: 20px;
+  }
+  .photo-image-frame {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    align-self: center;
+  }
+  .photo-info {
+    height: 487px;
+  }
+  .photo-meta {
+    margin-left: 0;
+  }
+  .photo-modal .photo-title {
+    font-size: 26px;
+    margin-left: 0;
+  }
+  .photo-apply,
+  .photo-copy {
+    font-size: 18px;
+    padding-inline: 12px;
+  }
+  .photo-copy {
+    gap: 12px;
+  }
+}
+@media (max-width: 900px) {
+  #v-gallery {
+    padding-top: 20px;
+  }
+  .gallery-toolbar {
+    height: 84px;
+  }
+  #galleryFilterToggle {
+    top: 0;
+  }
+  .gallery-card {
+    border-radius: 32px;
+  }
+  .gallery-likes {
+    left: 16px;
+    bottom: 16px;
+  }
+}
+@media (max-width: 640px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .gallery-pagination {
+    padding: 7px 16px;
+    gap: 4px;
+    bottom: 20px;
+    margin-top: 20px;
+  }
+  .gallery-pagination button,
+  .page-gap {
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+  }
+  .photo-overlay {
+    padding: 12px;
+    place-items: center;
+  }
+  .win.photo-modal {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: calc(100dvh - 24px);
+    padding: 16px;
+    border-radius: 32px;
+  }
+  .photo-image-frame {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .photo-full {
+    border-radius: 24px;
+  }
+  .photo-info {
+    height: auto;
+    padding-top: 20px;
+  }
+  .photo-meta {
+    margin: 0;
+    padding: 0;
+  }
+  .photo-modal .photo-title {
+    font-size: 28px;
+    height: auto;
+    line-height: 1;
+    margin: 12px 0 20px;
+    white-space: normal;
+  }
+  .photo-prompt {
+    height: 220px;
+  }
+  .photo-apply,
+  .photo-copy {
+    font-size: 20px;
+  }
+  .photo-modal .x {
+    top: 24px;
+    right: 24px;
+  }
+}
+/* Keep the prompt scrollbar visible, as in the photo preview design. */
+.photo-prompt pre {
+  overflow-y: scroll;
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+}
+.photo-prompt pre::-webkit-scrollbar {
+  width: 6px;
+}
+.photo-prompt pre::-webkit-scrollbar-track {
+  background: #ffffff1a;
+  border-radius: 8px;
+}
+.photo-prompt pre::-webkit-scrollbar-thumb {
+  background: #cad95a;
+  border-radius: 8px;
+}

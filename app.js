@@ -125,13 +125,42 @@
     const wrap = m.firstChild,
       win = wrap.firstChild,
       prev = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const close = () => {
       m.innerHTML = "";
+      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKey);
-      if (prev && prev.focus) prev.focus();
+      const focusTarget = prev?.isConnected
+        ? prev
+        : prev?.dataset.pid
+          ? [...document.querySelectorAll(".gallery-card")].find(
+              (card) => card.dataset.pid === prev.dataset.pid,
+            )
+          : null;
+      focusTarget?.focus();
     };
     const onKey = (e) => {
       if (e.key === "Escape") close();
+      if (e.key === "Tab") {
+        const controls = [
+          ...win.querySelectorAll(
+            'button:not(:disabled),input,select,textarea,[tabindex="0"]',
+          ),
+        ].filter((el) => el.getClientRects().length);
+        const first = controls[0],
+          last = controls[controls.length - 1];
+        if (
+          e.shiftKey &&
+          (document.activeElement === first || document.activeElement === win)
+        ) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
     };
     document.addEventListener("keydown", onKey);
     wrap.addEventListener("click", (e) => {
@@ -139,7 +168,10 @@
     });
     win.querySelector(".x").addEventListener("click", close);
     if (mount) mount(win, close);
-    const f = win.querySelector("input,textarea,button:not(.x)");
+    const f =
+      win.dataset.initialFocus === "dialog"
+        ? win
+        : win.querySelector("input,textarea,button:not(.x)");
     if (f) f.focus();
     return close;
   }
@@ -316,7 +348,7 @@
       STEP !== 3 && SEASON === "autumn"
         ? ["3e23f.png", "78299.png", "57b68.png"]
         : [];
-    return `<aside class="examples"><h2>Примеры генераций</h2><div class="example-grid">${Array.from({ length: 6 }, (_, i) => art(images[i] || "268b2.png", "example-image", images[i] ? "Пример осенней генерации" : "")).join("")}</div></aside>`;
+    return `<aside class="examples"><h2>Примеры генераций</h2><div class="example-grid">${Array.from({ length: 6 }, (_, i) => (images[i] ? `<button type="button" class="example-button" data-example="${images[i]}" aria-label="Открыть пример: ${EXAMPLE_PHOTOS[images[i]].title}">${art(images[i], "example-image", EXAMPLE_PHOTOS[images[i]].title)}</button>` : art("268b2.png", "example-image"))).join("")}</div></aside>`;
   }
   function familyPreview() {
     return `<div class="family-preview ${esc(SEASON)}"><div class="family-art">${WHO.filter(
@@ -336,7 +368,7 @@
     if (STEP === 0) {
       h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${w === "son" ? "base-son" : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
     } else if (STEP === 1) {
-      h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" aria-checked="${SEASON === s.id}" ${s.id === "newyear" ? "disabled" : ""}>${art(s.wash, "season-wash")}${s.icon ? art(s.icon, "season-icon") : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
+      h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" aria-checked="${SEASON === s.id}" ${s.id === "newyear" ? "disabled" : ""}>${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
     } else if (STEP === 2) {
       h = `<div class="scene-grid">${SCENES.map((s) => `<button type="button" class="scene-choice" data-scene="${s.id}" aria-pressed="${SCENE === s.id}"><span class="scene-image">${art(s.id === "cafe" ? "914cd.png" : "268b2.png", "", s.name)}${SCENE === s.id ? `<span class="scene-check">${art("f4244.svg")}</span>` : ""}</span><span>${s.name}</span></button>`).join("")}${Array.from({ length: 4 }, () => '<div class="scene-empty" aria-hidden="true"></div>').join("")}</div>`;
     } else {
@@ -357,6 +389,10 @@
     const t = e.target.closest("button");
     if (!t || t.disabled) return;
     const d = t.dataset;
+    if (d.example) {
+      viewPub(examplePublication(d.example));
+      return;
+    }
     if (d.cast) {
       CAST.has(d.cast) ? CAST.delete(d.cast) : CAST.add(d.cast);
       if (CAST.size) syncCast();
@@ -710,20 +746,86 @@
   /* =====================================================================
    ГАЛЕРЕЯ
    ===================================================================== */
-  let GAL = { sort: "new", who: "all", items: [], likes: [], names: {} };
+  /* Gallery records retain Supabase permissions; examples have local favourites. */
+  let GAL = {
+    sort: "new",
+    who: "all",
+    items: [],
+    likes: [],
+    names: {},
+    page: 1,
+  };
+  const GALLERY_PAGE_SIZE = 15;
+  const EXAMPLE_LIKES_KEY = "capykadr-example-likes-v1";
+  const EXAMPLE_PHOTOS = {
+    "3e23f.png": {
+      who: "son",
+      title: "Урожай яблок",
+      object: "a wicker basket filled with red and green apples",
+    },
+    "78299.png": {
+      who: "dad",
+      title: "Осенний букет",
+      object: "a colorful bouquet of fallen autumn leaves",
+    },
+    "57b68.png": {
+      who: "mom",
+      title: "Осенний букет",
+      object: "a colorful bouquet of fallen autumn leaves",
+    },
+  };
+  function examplePublication(file) {
+    const example = EXAMPLE_PHOTOS[file];
+    if (!example) return null;
+    const state = normalize({
+      ...clone(DEF),
+      chars: [
+        {
+          who: example.who,
+          outfit: `${example.who}-autumn`,
+          pose: "hold",
+          emo: "auto",
+          x: 50,
+          y: 86,
+          object: example.object,
+        },
+      ],
+      location: "autumn",
+      light: "golden",
+      designSeason: "autumn",
+      designScene: "custom",
+    });
+    return {
+      id: file,
+      example: true,
+      title: example.title,
+      url: ART + file,
+      state,
+      prompt: B.build(state).prompt,
+    };
+  }
+  function exampleLiked(id) {
+    try {
+      return JSON.parse(
+        localStorage.getItem(EXAMPLE_LIKES_KEY) || "[]",
+      ).includes(id);
+    } catch {
+      return false;
+    }
+  }
   async function loadGallery() {
     const el = $("gList");
-    el.innerHTML = `<div class="empty">Загружаем…</div>`;
+    el.innerHTML = '<div class="empty" role="status">Загружаем…</div>';
     $("gWho").innerHTML = [
       ["all", "Все герои"],
       ...WHO.map((w) => [w, C.CHARS[w].name]),
     ]
       .map(
-        ([id, nm]) =>
-          `<button type="button" class="chip" data-gw="${id}" aria-pressed="${GAL.who === id}">${nm}</button>`,
+        ([id, name]) =>
+          `<button type="button" class="chip" data-gw="${id}" aria-pressed="${GAL.who === id}">${name}</button>`,
       )
       .join("");
-    const [pubs, likes, profs] = await Promise.all([
+    const [pubs, likes, profiles] = await Promise.all([
       sb
         .from("publications")
         .select("*")
@@ -733,151 +835,247 @@
       sb.from("profiles").select("id,name,email"),
     ]);
     if (pubs.error) {
-      el.innerHTML = `<div class="empty">Не удалось загрузить: ${esc(pubs.error.message)}</div>`;
+      el.innerHTML = `<div class="empty" role="alert">Не удалось загрузить: ${esc(pubs.error.message)}</div>`;
+      $("galleryPagination").innerHTML = "";
       return;
     }
-    GAL.items = pubs.data;
+    GAL.items = pubs.data || [];
     GAL.likes = likes.data || [];
     GAL.names = Object.fromEntries(
-      (profs.data || []).map((p) => [
+      (profiles.data || []).map((p) => [
         p.id,
         p.name || (p.email || "").split("@")[0],
       ]),
     );
-    const paths = GAL.items.map((p) => p.image_path);
-    if (paths.length) {
-      const { data: urls } = await sb.storage
+    if (GAL.items.length) {
+      const { data: urls, error } = await sb.storage
         .from("works")
-        .createSignedUrls(paths, 60 * 60 * 6);
-      (urls || []).forEach((u, i) => (GAL.items[i].url = u && u.signedUrl));
+        .createSignedUrls(
+          GAL.items.map((p) => p.image_path),
+          60 * 60 * 6,
+        );
+      (urls || []).forEach((url, index) => {
+        GAL.items[index].url = url && url.signedUrl;
+      });
+      if (error) toast("Некоторые изображения не удалось загрузить");
     }
     drawGallery();
   }
-  const likeCount = (id) => GAL.likes.filter((l) => l.pub_id === id).length;
+  const likeCount = (id) =>
+    GAL.likes.filter((like) => like.pub_id === id).length;
   const iLike = (id) =>
-    GAL.likes.some((l) => l.pub_id === id && l.user_id === ME.id);
+    GAL.likes.some((like) => like.pub_id === id && like.user_id === ME.id);
   function drawGallery() {
     let list = GAL.items.slice();
     if (GAL.who !== "all")
-      list = list.filter(
-        (p) =>
-          p.state &&
-          p.state.chars &&
-          p.state.chars.some((c) => c.who === GAL.who),
-      );
+      list = list.filter((p) => p.state?.chars?.some((c) => c.who === GAL.who));
     if (GAL.sort === "mine") list = list.filter((p) => p.user_id === ME.id);
     if (GAL.sort === "top")
       list.sort((a, b) => likeCount(b.id) - likeCount(a.id));
-    const el = $("gList");
-    if (!list.length) {
-      el.innerHTML = `<div class="empty">${GAL.sort === "mine" ? "Вы ещё ничего не публиковали. Оцените удачный кадр в «Мои промты» и нажмите «Опубликовать»." : "Пока пусто. Станьте первым, кто поделится кадром."}</div>`;
-      return;
-    }
-    el.innerHTML =
-      `<div class="grid">` +
-      list
-        .map(
-          (
-            p,
-          ) => `<button type="button" class="gcard${p.hidden ? " hid" : ""}" data-pid="${p.id}">
-    <img src="${esc(p.url || "")}" alt="${esc(p.title || "Кадр")}" loading="lazy"><div><span class="likes">♥ ${likeCount(p.id)}</span><b>${esc(p.title || "Без названия")}</b>${esc(GAL.names[p.user_id] || "")}${p.hidden ? " · скрыто" : ""}</div></button>`,
-        )
-        .join("") +
-      `</div>`;
+    const pages = Math.max(1, Math.ceil(list.length / GALLERY_PAGE_SIZE));
+    GAL.page = clamp(GAL.page, 1, pages);
+    const pageItems = list.slice(
+      (GAL.page - 1) * GALLERY_PAGE_SIZE,
+      GAL.page * GALLERY_PAGE_SIZE,
+    );
+    $("gList").innerHTML = pageItems.length
+      ? `<div class="gallery-grid">${pageItems
+          .map(
+            (p) => `
+      <button type="button" class="gallery-card${p.hidden ? " hid" : ""}" data-pid="${esc(p.id)}" aria-label="Открыть: ${esc(p.title || "Без названия")}">
+        <img class="gallery-photo" src="${esc(p.url || ART + "268b2.png")}" alt="${esc(p.title || "Кадр")}" loading="lazy">
+        <span class="gallery-card-shade" aria-hidden="true"></span>
+        <span class="gallery-likes">${art("df17d.svg")}<span>${likeCount(p.id)}</span></span>
+      </button>`,
+          )
+          .join("")}</div>`
+      : `<div class="empty">${GAL.sort === "mine" ? "Вы ещё ничего не публиковали. Оцените удачный кадр в «Мои промты» и нажмите «Опубликовать»." : "Пока пусто. Станьте первым, кто поделится кадром."}</div>`;
+    const numbers =
+      pages <= 5
+        ? Array.from({ length: pages }, (_, i) => i + 1)
+        : [
+            ...new Set(
+              [1, GAL.page - 1, GAL.page, GAL.page + 1, pages].filter(
+                (p) => p >= 1 && p <= pages,
+              ),
+            ),
+          ].sort((a, b) => a - b);
+    $("galleryPagination").innerHTML =
+      pages > 1
+        ? `<nav class="gallery-pagination" aria-label="Страницы галереи">${numbers.map((page, i) => `${i && page - numbers[i - 1] > 1 ? '<span class="page-gap" aria-hidden="true">…</span>' : ""}<button type="button" data-gallery-page="${page}" aria-label="Страница ${page}" ${page === GAL.page ? 'aria-current="page"' : ""}>${page}</button>`).join("")}</nav>`
+        : "";
   }
+  $("galleryFilterToggle").addEventListener("click", () => {
+    const hidden = !$("galleryFilters").hidden;
+    $("galleryFilters").hidden = hidden;
+    $("galleryFilterToggle").setAttribute("aria-expanded", String(!hidden));
+  });
   $("gSort").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-s]");
-    if (!b) return;
-    GAL.sort = b.dataset.s;
+    const button = e.target.closest("[data-s]");
+    if (!button) return;
+    GAL.sort = button.dataset.s;
+    GAL.page = 1;
     $("gSort")
       .querySelectorAll("[data-s]")
-      .forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+      .forEach((b) => b.setAttribute("aria-checked", String(b === button)));
     drawGallery();
   });
   $("gWho").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-gw]");
-    if (!b) return;
-    GAL.who = b.dataset.gw;
+    const button = e.target.closest("[data-gw]");
+    if (!button) return;
+    GAL.who = button.dataset.gw;
+    GAL.page = 1;
     $("gWho")
       .querySelectorAll("[data-gw]")
-      .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      .forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
     drawGallery();
   });
-  $("gList").addEventListener("click", (e) => {
-    const c = e.target.closest("[data-pid]");
-    if (c) viewPub(GAL.items.find((p) => p.id === c.dataset.pid));
+  $("galleryPagination").addEventListener("click", (e) => {
+    const button = e.target.closest("[data-gallery-page]");
+    if (!button) return;
+    GAL.page = +button.dataset.galleryPage;
+    drawGallery();
+    $("galleryFilterToggle").focus();
+    window.scrollTo({ top: 0, behavior: "instant" });
   });
-  function viewPub(p) {
-    const mine = p.user_id === ME.id;
+  $("gList").addEventListener("click", (e) => {
+    const card = e.target.closest("[data-pid]");
+    if (card) viewPub(GAL.items.find((p) => p.id === card.dataset.pid));
+  });
+  $("gList").addEventListener("contextmenu", (e) => {
+    const card = e.target.closest("[data-pid]");
+    const publication =
+      card && GAL.items.find((p) => p.id === card.dataset.pid);
+    if (!publication || !(ADMIN || publication.user_id === ME.id)) return;
+    e.preventDefault();
+    moderatePublication(publication);
+  });
+  async function togglePhotoLike(publication) {
+    if (publication.example) {
+      try {
+        const likes = new Set(
+          JSON.parse(localStorage.getItem(EXAMPLE_LIKES_KEY) || "[]"),
+        );
+        likes.has(publication.id)
+          ? likes.delete(publication.id)
+          : likes.add(publication.id);
+        localStorage.setItem(EXAMPLE_LIKES_KEY, JSON.stringify([...likes]));
+        return true;
+      } catch {
+        toast("Не удалось сохранить отметку");
+        return false;
+      }
+    }
+    const liked = iLike(publication.id);
+    const result = liked
+      ? await sb
+          .from("publication_likes")
+          .delete()
+          .eq("pub_id", publication.id)
+          .eq("user_id", ME.id)
+      : await sb.from("publication_likes").insert({ pub_id: publication.id });
+    if (result.error) {
+      toast("Не удалось сохранить отметку");
+      return false;
+    }
+    if (liked)
+      GAL.likes = GAL.likes.filter(
+        (l) => !(l.pub_id === publication.id && l.user_id === ME.id),
+      );
+    else GAL.likes.push({ pub_id: publication.id, user_id: ME.id });
+    drawGallery();
+    return true;
+  }
+  function viewPub(publication) {
+    if (!publication) return;
+    const liked = publication.example
+      ? exampleLiked(publication.id)
+      : iLike(publication.id);
+    const author = publication.example
+      ? "CapyKadr · Пример генерации"
+      : `${GAL.names[publication.user_id] || "Участник команды"} · ${fmtDate(publication.created_at)}`;
     modal(
-      `<div class="view"><img src="${esc(p.url || "")}" alt="${esc(p.title || "")}"><div>
-    <h2>${esc(p.title || "Без названия")}</h2><p class="hint">${esc(GAL.names[p.user_id] || "")} · ${fmtDate(p.created_at)}</p>
-    ${p.note ? `<p>${esc(p.note)}</p>` : ""}<div class="row" style="margin:10px 0">${sceneChips(
-      p.state,
-    )
-      .map((c) => `<span class="mini">${esc(c)}</span>`)
-      .join("")}</div>
-    <div class="row"><button class="btn primary" type="button" data-v="apply">Применить настройки</button><button class="btn" type="button" data-v="copy">Скопировать промт</button>
-    <button class="btn" type="button" data-v="like" aria-pressed="${iLike(p.id)}">${iLike(p.id) ? "♥ Полезно" : "♡ Полезно"} · ${likeCount(p.id)}</button></div>
-    <p class="hint">Персонажи и одежда применятся вместе со всей сценой. Поменяйте что нужно и скопируйте свой промт.</p>
-    ${ADMIN || mine ? `<div class="row" style="margin-top:14px">${ADMIN ? `<button class="btn small" type="button" data-v="hide">${p.hidden ? "Показать всем" : "Скрыть из галереи"}</button>` : ""}<button class="btn small danger" type="button" data-v="del">Удалить</button></div>` : ""}
-  </div></div>`,
+      `<div class="photo-image-frame"><img class="photo-full" src="${esc(publication.url || ART + "268b2.png")}" alt="${esc(publication.title || "Кадр")}"><button type="button" class="photo-like" data-photo-action="like" aria-label="Полезно" aria-pressed="${liked}">${art("8b823.svg")}</button></div>
+      <div class="photo-info"><p class="photo-meta">${esc(author)}</p><h2 class="photo-title" id="photo-modal-title" title="${esc(publication.title || "Без названия")}">${esc(publication.title || "Без названия")}</h2>
+      <div class="photo-prompt"><pre tabindex="0" aria-label="Промт фотографии">${esc(publication.prompt)}</pre></div>
+      <button type="button" class="photo-apply" data-photo-action="apply">Применить настройки</button>
+      <button type="button" class="photo-copy" data-photo-action="copy">Копировать промт ${art("34c5f.svg")}</button></div>`,
       (win, close) => {
+        win.classList.add("photo-modal");
+        win.parentElement.classList.add("photo-overlay");
+        win.setAttribute("aria-labelledby", "photo-modal-title");
+        win.tabIndex = -1;
+        win.dataset.initialFocus = "dialog";
+        win.querySelector(".x").innerHTML = art("7a36b.svg");
         win.addEventListener("click", async (e) => {
-          const b = e.target.closest("[data-v]");
-          if (!b) return;
-          const v = b.dataset.v;
-          if (v === "apply") {
+          const button = e.target.closest("[data-photo-action]");
+          if (!button) return;
+          const action = button.dataset.photoAction;
+          if (action === "apply") {
             close();
-            applyState(p.state);
-            logEvent("apply_gallery", { pub: p.id });
+            applyState(publication.state);
+            logEvent("apply_gallery", { pub: publication.id });
           }
-          if (v === "copy") {
-            if (await copyText(p.prompt)) toast("Промт скопирован");
+          if (action === "copy") {
+            if (await copyText(publication.prompt)) toast("Промт скопирован");
+            else toast("Не удалось скопировать промт. Выделите текст вручную.");
           }
-          if (v === "like") {
-            if (iLike(p.id)) {
-              await sb
-                .from("publication_likes")
-                .delete()
-                .eq("pub_id", p.id)
-                .eq("user_id", ME.id);
-              GAL.likes = GAL.likes.filter(
-                (l) => !(l.pub_id === p.id && l.user_id === ME.id),
-              );
-            } else {
-              await sb.from("publication_likes").insert({ pub_id: p.id });
-              GAL.likes.push({ pub_id: p.id, user_id: ME.id });
-            }
-            b.textContent = `${iLike(p.id) ? "♥ Полезно" : "♡ Полезно"} · ${likeCount(p.id)}`;
-            b.setAttribute("aria-pressed", String(iLike(p.id)));
-            drawGallery();
-          }
-          if (v === "hide") {
-            await sb
-              .from("publications")
-              .update({ hidden: !p.hidden })
-              .eq("id", p.id);
-            p.hidden = !p.hidden;
-            close();
-            drawGallery();
-          }
-          if (v === "del") {
-            if (!b.dataset.sure) {
-              b.dataset.sure = "1";
-              b.textContent = "Точно удалить?";
-              return;
-            }
-            await sb.from("publications").delete().eq("id", p.id);
-            await sb.storage.from("works").remove([p.image_path]);
-            GAL.items = GAL.items.filter((x) => x.id !== p.id);
-            close();
-            drawGallery();
-            toast("Удалено");
+          if (action === "like") {
+            button.disabled = true;
+            await togglePhotoLike(publication);
+            button.setAttribute(
+              "aria-pressed",
+              String(
+                publication.example
+                  ? exampleLiked(publication.id)
+                  : iLike(publication.id),
+              ),
+            );
+            button.disabled = false;
           }
         });
       },
       true,
+    );
+  }
+  function moderatePublication(publication) {
+    modal(
+      `<h2>Управление публикацией</h2><p>${esc(publication.title || "Без названия")}</p><div class="row">${ADMIN ? `<button type="button" class="btn" data-manage="hide">${publication.hidden ? "Показать всем" : "Скрыть из галереи"}</button>` : ""}<button type="button" class="btn danger" data-manage="delete">Удалить</button></div>`,
+      (win, close) => {
+        win.addEventListener("click", async (e) => {
+          const button = e.target.closest("[data-manage]");
+          if (!button) return;
+          if (button.dataset.manage === "hide") {
+            const result = await sb
+              .from("publications")
+              .update({ hidden: !publication.hidden })
+              .eq("id", publication.id);
+            if (result.error) {
+              toast("Не удалось изменить публикацию");
+              return;
+            }
+            publication.hidden = !publication.hidden;
+            close();
+            drawGallery();
+          } else if (!button.dataset.sure) {
+            button.dataset.sure = "1";
+            button.textContent = "Точно удалить?";
+          } else {
+            const result = await sb
+              .from("publications")
+              .delete()
+              .eq("id", publication.id);
+            if (result.error) {
+              toast("Не удалось удалить публикацию");
+              return;
+            }
+            await sb.storage.from("works").remove([publication.image_path]);
+            GAL.items = GAL.items.filter((p) => p.id !== publication.id);
+            close();
+            drawGallery();
+          }
+        });
+      },
     );
   }
 
