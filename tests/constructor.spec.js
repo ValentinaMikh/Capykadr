@@ -263,7 +263,10 @@ for (const viewport of [
     const seasons = await page.locator(".season-list").boundingBox();
     expect(seasons.x).toBeCloseTo(349 + (viewport.width - 1920) / 2, 0);
     const choose = await page.locator("#chooseBtn").boundingBox();
-    expect(choose.y).toBeCloseTo(791, 0);
+    expect(choose.y + choose.height + 20).toBeCloseTo(
+      (await page.locator(".step-nav").boundingBox()).y,
+      0,
+    );
     const nav = await page.locator(".step-nav").boundingBox();
     expect(viewport.height - nav.y - nav.height).toBeCloseTo(38, 0);
     await capture(page, testInfo, "wide-season-" + viewport.width);
@@ -483,3 +486,56 @@ test("wide screens with browser toolbars keep the step navigation visible", asyn
   );
   await capture(page, testInfo, "wide-short-window");
 });
+
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 1440, height: 920 },
+  { width: 1920, height: 1080 },
+]) {
+  test(`builder dock stays centred above the page while scrolling at ${viewport.width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize(viewport);
+    await openFamily(page);
+    const dock = page.locator("#builderDock");
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue(
+              "--builder-dock-height",
+            ),
+          ),
+        ),
+      )
+      .toBeGreaterThan(0);
+    const before = await dock.boundingBox();
+    expect(before.x + before.width / 2).toBeCloseTo(viewport.width / 2, 0);
+    expect(viewport.height - before.y - before.height).toBeCloseTo(
+      viewport.width >= 1920 ? 38 : viewport.width <= 900 ? 24 : 36,
+      0,
+    );
+    await page.evaluate(() => {
+      document.getElementById("steps").style.minHeight = "1800px";
+      window.scrollTo(0, 600);
+    });
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY))
+      .toBeGreaterThan(0);
+    const after = await dock.boundingBox();
+    expect(after.x).toBeCloseTo(before.x, 1);
+    expect(after.y).toBeCloseTo(before.y, 1);
+    await page.screenshot({
+      path: testInfo.outputPath("fixed-dock-" + viewport.width + ".png"),
+    });
+    await page.locator("#chooseBtn").click();
+    await expect(page.locator(".season-list")).toBeVisible();
+    await page.locator('[data-season="autumn"]').click();
+    await page.locator("#chooseBtn").click();
+    const actions = await page.locator("#builderActions").boundingBox(),
+      nav = await page.locator(".step-nav").boundingBox();
+    expect(actions.y + actions.height).toBeLessThanOrEqual(nav.y);
+    await page.locator('.nav [data-v="gallery"]').click();
+    await expect(dock).toBeHidden();
+  });
+}

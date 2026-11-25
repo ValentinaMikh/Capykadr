@@ -1687,3 +1687,54 @@ fieldset {
   background: #cad95a;
   border-radius: 8px;
 }
+
+/* The action and step controls float together above the page content. */
+:root {
+  --builder-dock-bottom: 36px;
+}
+#v-builder {
+  padding-bottom: calc(
+    var(--builder-dock-height, 161px) +
+      max(var(--builder-dock-bottom), env(safe-area-inset-bottom, 0px)) + 24px
+  );
+}
+.builder-dock {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  bottom: max(var(--builder-dock-bottom), env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  pointer-events: none;
+}
+.builder-dock .builder-actions {
+  position: static;
+  left: auto;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  pointer-events: auto;
+}
+.builder-dock #builderNav {
+  margin: 0;
+  padding: 0;
+  pointer-events: auto;
+}
+.builder-dock .step-nav {
+  margin: 0 auto;
+}
+@media (min-width: 1920px) {
+  :root {
+    --builder-dock-bottom: 38px;
+  }
+}
+@media (max-width: 900px) {
+  :root {
+    --builder-dock-bottom: 24px;
+  }
+}

@@ -1533,6 +1533,18 @@
   });
   $("fab").addEventListener("click", feedbackDialog);
 
+  // Reserve the actual dock height, including wrapped actions on small screens.
+  if (window.ResizeObserver) {
+    new ResizeObserver(([entry]) => {
+      const height = entry.target.getBoundingClientRect().height;
+      if (height > 0)
+        document.documentElement.style.setProperty(
+          "--builder-dock-height",
+          `${height}px`,
+        );
+    }).observe($("builderDock"));
+  }
+
   /* =====================================================================
    СТАРТ
    ===================================================================== */
