@@ -10,3 +10,7 @@ Files retain Figma's export identifiers and original bytes. The checkerboard
 image 268b2.png is present in the design itself. No design screenshot is used
 as a runtime UI asset. Uploaded Supabase reference images take precedence
 over bundled reference images.
+
+Additional source frames: 2205:628 (wide desktop layout), 2203:13090
+(gallery), 2203:13218 (photo preview). The five gallery and modal SVGs
+retain their original exported bytes and intrinsic dimensions.

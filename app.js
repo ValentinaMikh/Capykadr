@@ -131,7 +131,14 @@
       m.innerHTML = "";
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKey);
-      if (prev && prev.focus) prev.focus();
+      const focusTarget = prev?.isConnected
+        ? prev
+        : prev?.dataset.pid
+          ? [...document.querySelectorAll(".gallery-card")].find(
+              (card) => card.dataset.pid === prev.dataset.pid,
+            )
+          : null;
+      focusTarget?.focus();
     };
     const onKey = (e) => {
       if (e.key === "Escape") close();

@@ -1262,7 +1262,7 @@ fieldset {
 @media (min-width: 1920px) {
   #v-builder {
     min-height: calc(100svh - 136px);
-    padding-top: 68px;
+    padding-top: clamp(0px, calc(100svh - 922px), 68px);
     padding-bottom: 38px;
     display: flex;
     flex-direction: column;
@@ -1276,6 +1276,7 @@ fieldset {
     position: relative;
     left: 18px;
     flex: none;
+    margin-top: clamp(28px, calc(100svh - 872px), 50px);
   }
   #builderNav {
     margin-top: auto;

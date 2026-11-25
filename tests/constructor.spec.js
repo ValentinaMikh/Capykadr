@@ -420,6 +420,7 @@ test("gallery grid, pagination, filters and publication modal retain their actio
   );
   await page.keyboard.press("Escape");
   await expect(first.locator(".gallery-likes")).toHaveText("16");
+  await expect(first).toBeFocused();
   await page.locator('[data-gallery-page="2"]').click();
   await expect(page.locator(".gallery-card")).toHaveCount(6);
   await page.locator("#galleryFilterToggle").click();
@@ -468,3 +469,17 @@ for (const viewport of [
     await page.keyboard.press("Escape");
     await expect(page.locator(".photo-modal")).toHaveCount(0);
   });
+
+test("wide screens with browser toolbars keep the step navigation visible", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 1920, height: 900 });
+  await openFamily(page);
+  await page.locator("#chooseBtn").click();
+  const nav = await page.locator(".step-nav").boundingBox();
+  expect(900 - nav.y - nav.height).toBeCloseTo(38, 0);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(
+    900,
+  );
+  await capture(page, testInfo, "wide-short-window");
+});
