@@ -70,20 +70,13 @@ async function assetsLoad(page) {
 }
 async function capture(page, testInfo, name) {
   await page.evaluate(() => document.fonts.ready);
-  console.log(
-    await page.evaluate(() => ({
-      font: getComputedStyle(
-        document.querySelector(
-          ".character-name,.season-name,.prompt-panel pre,.nav a",
-        ),
-      ).fontFamily,
-      faces: [...document.fonts].map((f) => ({
-        family: f.family,
-        status: f.status,
-        weight: f.weight,
-      })),
-    })),
-  );
+  expect(
+    await page.evaluate(() =>
+      [...document.fonts].some(
+        (f) => f.family === "Roboto Flex" && f.status === "loaded",
+      ),
+    ),
+  ).toBe(true);
   await assetsLoad(page);
   await page.screenshot({
     path: testInfo.outputPath(name + ".png"),

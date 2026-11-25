@@ -1211,13 +1211,7 @@ fieldset {
 .character-choice[aria-pressed="true"].son .character-image {
   background: linear-gradient(#ffdfa4, #fcc35a);
 }
-.character-name,
-.season-name,
-.scene-choice {
-  font-variation-settings:
-    "opsz" 14,
-    "wght" 1000;
-}
+
 .brand span {
   display: block;
 }
@@ -1233,5 +1227,22 @@ fieldset {
 @media (min-width: 901px) {
   .result-layout {
     height: 537px;
+  }
+}
+
+@media (min-width: 901px) {
+  .examples h2,
+  .reference-panel h2 {
+    position: relative;
+    left: 4px;
+    width: 246px;
+    height: 22px;
+    margin: 2px auto 21px;
+  }
+  .example-grid {
+    grid-template-columns: 160px 158px;
+  }
+  .reference-grid {
+    grid-template-columns: 160px 160px;
   }
 }
