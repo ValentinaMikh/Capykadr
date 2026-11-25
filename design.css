@@ -1788,3 +1788,288 @@ fieldset {
     margin-top: 20px;
   }
 }
+
+/* Compact header and prompt layouts from the 720px and 420px frames. */
+@media (max-width: 900px) {
+  .top {
+    height: 95px;
+    min-height: 95px;
+    padding: 25px 18px 29px 17px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 16px;
+    row-gap: 0;
+  }
+  .top .brand {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    gap: 8.039px;
+    font-size: 25.725px;
+  }
+  .top .brand-icon,
+  .top .ubtn,
+  .top .ava {
+    width: 41px;
+    height: 41px;
+  }
+  .top .brand > span {
+    display: block;
+  }
+  .top .ubtn {
+    grid-column: 3;
+  }
+  .top .nav {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    height: 41px;
+    padding: 1.608px;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .top .nav a {
+    flex: none;
+    padding: 0 12.863px;
+    font-size: 12.863px;
+  }
+  #v-builder {
+    padding-top: 0;
+    padding-left: 17px;
+    padding-right: 18px;
+  }
+  .result-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 251.715px) minmax(0, 372.996px);
+    column-gap: 24px;
+    row-gap: 26.526px;
+    margin: 0;
+  }
+  .result-layout > * {
+    min-width: 0;
+  }
+  .result-layout .reference-panel {
+    width: 100%;
+  }
+  .result-layout .reference-panel h2 {
+    font-size: 18.307px;
+    line-height: 17px;
+    height: 17px;
+    margin: 0 0 15.799px;
+  }
+  .result-layout .reference-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 122.044px));
+    gap: 9.916px 9.152px;
+  }
+  .result-layout .reference-grid > button,
+  .result-layout .reference-empty {
+    height: 121.281px;
+    aspect-ratio: auto;
+    border-radius: 36.613px;
+  }
+  .result-layout .reference-grid > button > span {
+    right: 12.264px;
+    bottom: 10.738px;
+  }
+  .result-layout .reference-grid > button > span img {
+    width: auto;
+    height: auto;
+  }
+  .result-layout .prompt-panel {
+    margin-top: 4px;
+    width: 100%;
+    height: 408.084px;
+    border-radius: 36.613px;
+    padding: 18.307px 12.204px 18.307px 18.307px;
+  }
+  .result-layout .prompt-panel pre {
+    font-size: 12.204px;
+    padding-right: 12.204px;
+  }
+  .result-layout .prompt-panel pre::-webkit-scrollbar {
+    width: 4.577px;
+  }
+  .result-layout .prompt-panel pre::-webkit-scrollbar-track {
+    background: #ffffff1a;
+    border-radius: 6px;
+  }
+  .result-layout .prompt-panel pre::-webkit-scrollbar-thumb {
+    background: #cad95a;
+    border-radius: 6px;
+  }
+  .result-layout .prompt-panel::after {
+    left: 18.307px;
+    right: 27px;
+    bottom: 18.307px;
+    height: 50.343px;
+  }
+  .result-layout .examples {
+    width: 100%;
+    justify-self: stretch;
+  }
+  .result-layout .examples h2 {
+    font-size: 24px;
+    line-height: 22px;
+    height: 22px;
+    margin: 0 0 21px;
+  }
+  .result-layout .example-grid {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .result-layout .example-grid > * {
+    flex: 0 0 160px;
+  }
+  .result-layout .example-image {
+    width: 160px;
+    height: 159px;
+  }
+  .builder-dock:has(#copyBtn) {
+    --builder-dock-bottom: 36px;
+    max-width: calc(100% - 18px);
+  }
+  .builder-dock:has(#copyBtn) .step-nav {
+    padding: 7px 40px;
+  }
+  .builder-dock #copyBtn {
+    width: 402px;
+    max-width: 100%;
+    min-width: 0;
+    height: 72px;
+    font-size: 32px;
+    padding: 0 28px;
+    gap: 24px;
+  }
+}
+@media (max-width: 640px) {
+  .top {
+    padding-right: 15px;
+    grid-template-columns: 41px minmax(0, 270px) 41px;
+    column-gap: 18px;
+    justify-content: space-between;
+  }
+  .top .brand {
+    grid-column: 1;
+  }
+  .top .brand > span:last-child {
+    display: none;
+  }
+  .top .nav {
+    grid-column: 2;
+    width: 100%;
+  }
+  #v-builder {
+    padding-right: 23px;
+  }
+  .result-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .result-layout .prompt-panel {
+    order: 0;
+    align-self: flex-end;
+    width: calc(100% - 7px);
+    margin-top: 3px;
+  }
+  .result-layout .reference-panel {
+    order: 1;
+    margin-top: 40px;
+  }
+  .result-layout .reference-panel h2,
+  .result-layout .examples h2 {
+    font-size: 18px;
+    line-height: 22px;
+    height: 22px;
+    margin: 0 0 16px;
+  }
+  .result-layout .reference-grid {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .result-layout .reference-grid > button {
+    flex: 0 0 122.044px;
+  }
+  .result-layout .reference-empty {
+    display: none;
+  }
+  .result-layout .examples {
+    order: 2;
+    margin-top: 32.719px;
+  }
+  .result-layout .example-grid > * {
+    flex-basis: 122.04px;
+  }
+  .result-layout .example-image {
+    width: 122.04px;
+    height: 121.277px;
+    border-radius: 36px;
+  }
+  .builder-dock:has(#copyBtn) {
+    --builder-dock-bottom: 44px;
+  }
+}
+@media (max-width: 400px) {
+  .top {
+    column-gap: 12px;
+  }
+  .builder-dock #copyBtn {
+    font-size: clamp(24px, 7.62vw, 32px);
+    padding-inline: 20px;
+    gap: 18px;
+  }
+  .builder-dock:has(#copyBtn) .step-nav {
+    padding-inline: 24px;
+  }
+}
+
+.prompt-scrollbar {
+  display: none;
+}
+@media (max-width: 900px) {
+  .builder-dock:has(#copyBtn) .step-nav {
+    gap: 16px;
+  }
+  .result-layout .prompt-panel pre {
+    padding-right: 16.781px;
+    scrollbar-width: none;
+  }
+  .result-layout .prompt-panel pre::-webkit-scrollbar {
+    display: none;
+  }
+  .prompt-scrollbar {
+    display: block;
+    position: absolute;
+    right: 12.204px;
+    top: 37.757px;
+    bottom: 37.757px;
+    width: 4.577px;
+    border-radius: 6.102px;
+    background: #ffffff1a;
+    pointer-events: none;
+  }
+  .prompt-scrollbar i {
+    display: block;
+    position: absolute;
+    top: var(--prompt-thumb-offset, 0%);
+    left: 0.763px;
+    width: 3.051px;
+    height: var(--prompt-thumb-size, 100%);
+    border-radius: 6.102px;
+    background: #cad95a;
+  }
+  #v-builder:has(#copyBtn) {
+    --builder-dock-bottom: 36px;
+  }
+}
+@media (max-width: 640px) {
+  #v-builder:has(#copyBtn) {
+    --builder-dock-bottom: 44px;
+  }
+}

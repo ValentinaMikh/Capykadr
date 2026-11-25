@@ -584,3 +584,94 @@ for (const viewport of [
     await expect(dock).toBeHidden();
   });
 }
+
+for (const viewport of [
+  { width: 720, height: 920 },
+  { width: 420, height: 1086 },
+]) {
+  test(`responsive prompt follows Figma at ${viewport.width}px and keeps scrollable actions usable`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize(viewport);
+    await openFamily(page);
+    await page.locator("#chooseBtn").click();
+    await page.locator('[data-season="autumn"]').click();
+    await page.locator('[data-step="2"]').click();
+    await page.locator('[data-scene="leaves"]').click();
+    await page.locator("#chooseBtn").click();
+    await page.evaluate(() => document.fonts.ready);
+    await assetsLoad(page);
+    const box = (selector) => page.locator(selector).boundingBox();
+    expect(await box(".top")).toMatchObject({ height: 95 });
+    expect(await box(".top .brand-icon")).toMatchObject({
+      width: 41,
+      height: 41,
+      y: 25,
+    });
+    expect(await box(".ubtn")).toMatchObject({ width: 41, height: 41, y: 25 });
+    expect((await box(".nav")).y).toBe(25);
+    const prompt = await box(".prompt-panel");
+    expect(prompt.width).toBeCloseTo(372.996, 1);
+    expect(prompt.height).toBeCloseTo(408.084, 1);
+    expect(prompt.y).toBe(viewport.width === 420 ? 98 : 99);
+    expect(prompt.x).toBeCloseTo(viewport.width === 420 ? 24 : 329, 0);
+    const refs = await box(".reference-panel");
+    expect(refs.y).toBeCloseTo(viewport.width === 420 ? 546 : 95, 0);
+    const examples = await box(".result-layout .examples");
+    expect(examples.y).toBeCloseTo(viewport.width === 420 ? 738 : 538, 0);
+    const downloadIcon = await box('[data-dl="0"] span img');
+    expect(downloadIcon.width).toBeCloseTo(38.8418, 2);
+    expect(downloadIcon.height).toBeCloseTo(38.8418, 2);
+    expect(
+      await page.locator(".ubtn img").evaluate((img) => img.currentSrc),
+    ).toMatch(/e972a.svg$/);
+    const button = await box("#copyBtn");
+    expect(button.width).toBe(402);
+    expect(button.height).toBe(72);
+    const nav = await box(".step-nav");
+    expect(nav.width).toBeCloseTo(349.354, 1);
+    expect(nav.y + nav.height).toBeCloseTo(
+      viewport.height - (viewport.width === 420 ? 44 : 36),
+      1,
+    );
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBe(viewport.width);
+    await page.screenshot({
+      path: testInfo.outputPath("responsive-prompt-" + viewport.width + ".png"),
+    });
+    const pre = page.locator(".prompt-panel pre");
+    await pre.evaluate((el) => (el.scrollTop = 300));
+    expect(await pre.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await expect
+      .poll(() =>
+        page
+          .locator(".prompt-panel")
+          .evaluate((el) =>
+            parseFloat(el.style.getPropertyValue("--prompt-thumb-offset")),
+          ),
+      )
+      .toBeGreaterThan(0);
+    const examplesGrid = page.locator(".result-layout .example-grid");
+    await examplesGrid.evaluate((el) => (el.scrollLeft = 400));
+    expect(await examplesGrid.evaluate((el) => el.scrollLeft)).toBeGreaterThan(
+      0,
+    );
+    if (viewport.width === 420) {
+      const grid = page.locator(".reference-grid");
+      await grid.evaluate((el) => (el.scrollLeft = 500));
+      expect(await grid.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+      const download = page.waitForEvent("download");
+      await page.locator('[data-dl="3"]').click();
+      expect((await download).suggestedFilename()).toContain("4-");
+    }
+    await page.evaluate(() => {
+      navigator.clipboard.writeText = async (value) =>
+        (window.__copied = value);
+    });
+    await page.locator("#copyBtn").click();
+    await expect
+      .poll(() => page.evaluate(() => window.__copied))
+      .toContain("character reference");
+  });
+}
