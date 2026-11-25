@@ -1174,9 +1174,10 @@
     $("gUpFields").hidden = false;
     $("gPassHint").hidden = m !== "up";
     $("gForgot").hidden = m !== "in";
-    $("gPassL").textContent = m === "up" ? "Пароль команды" : "Пароль";
+    $("gPassL").textContent = "Пароль";
     $("gPass").autocomplete = m === "up" ? "new-password" : "current-password";
     $("gBtn").textContent = m === "up" ? "Зарегистрироваться" : "Войти";
+    $("gBtn").classList.toggle("registration", m === "up");
     $("gErr").textContent = "";
   }
   document

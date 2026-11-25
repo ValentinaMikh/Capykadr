@@ -101,8 +101,19 @@ test("login matches form structure and validates inputs", async ({
   await page.locator("#gEmail").fill("team@example.com");
   await page.locator("#gBtn").click();
   await expect(page.locator("#gErr")).toHaveText("Введите пароль");
+  const labels = await page.locator("#gateF label").allTextContents();
+  const loginButton = await page.locator("#gBtn").boundingBox();
   await page.locator('[data-gm="up"]').click();
-  await expect(page.locator("#gPassL")).toHaveText("Пароль команды");
+  expect(await page.locator("#gateF label").allTextContents()).toEqual(labels);
+  await expect(page.locator("#gPassL")).toHaveText("Пароль");
+  const registrationButton = await page.locator("#gBtn").boundingBox();
+  expect(registrationButton.width / loginButton.width).toBeCloseTo(0.8, 2);
+  expect(registrationButton.height / loginButton.height).toBeCloseTo(0.8, 2);
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({
+    path: testInfo.outputPath("registration.png"),
+    fullPage: true,
+  });
   await page.locator('[data-gm="in"]').click();
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({
