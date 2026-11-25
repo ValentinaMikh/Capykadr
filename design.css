@@ -1670,3 +1670,20 @@ fieldset {
     right: 24px;
   }
 }
+/* Keep the prompt scrollbar visible, as in the photo preview design. */
+.photo-prompt pre {
+  overflow-y: scroll;
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+}
+.photo-prompt pre::-webkit-scrollbar {
+  width: 6px;
+}
+.photo-prompt pre::-webkit-scrollbar-track {
+  background: #ffffff1a;
+  border-radius: 8px;
+}
+.photo-prompt pre::-webkit-scrollbar-thumb {
+  background: #cad95a;
+  border-radius: 8px;
+}
