@@ -13,9 +13,10 @@ async function mockAccount(page, signedIn = true) {
           then: (resolve) =>
             Promise.resolve({ data, error: null }).then(resolve),
         };
-        return new Proxy(q, {
-          get: (target, key) => (key === "then" ? target.then : () => q),
+        const proxy = new Proxy(q, {
+          get: (target, key) => (key === "then" ? target.then : () => proxy),
         });
+        return proxy;
       };
       Object.defineProperty(window, "supabase", {
         configurable: true,
