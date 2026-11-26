@@ -60,6 +60,7 @@ function emotion(c, pose) {
 
 /* ---------- главный промт ---------- */
 function build(state) {
+  if (["neutral", "reference"].includes(state.outputMode)) return buildWhite(state);
   const issues = check(state);
   const chars = [...state.chars].sort((a, b) => a.x - b.x);           // слева направо по холсту
   const multi = chars.length > 1;
@@ -158,6 +159,49 @@ function build(state) {
   };
 }
 
+/* White-background outputs deliberately exclude scene, action and pose overrides. */
+function buildWhite(state) {
+  const sourcePose = state.outputMode === "reference";
+  const chars = [...state.chars].sort((a,b) => a.x-b.x);
+  const clean = { ...state, outputMode: "scene", location: "white", light: "studio", action: "none", textzone: "none", extra: "", product: "",
+    chars: chars.map(c => ({ ...c, pose: "stand", emo: "auto", object: "" })) };
+  const base = build(clean);
+  const refs = [...base.refs];
+  if (sourcePose) refs.push({key:"pose-source", file:null, external:true, label:"Ваш исходник · поза, поворот и взгляд"});
+  const frame = by(C.FRAMES,state.frame) || C.FRAMES[0];
+  const turn = by(C.BODY_TURNS,state.bodyTurn) || C.BODY_TURNS[0];
+  const gaze = by(C.GAZES,state.gaze) || C.GAZES[0];
+  const lines = [
+    "Create a clean full-body capybara character reference on a pure white background.",
+    refs.map((r,i) => `Image ${i+1} = ${r.key === "pose-source" ? "source pose, body orientation and gaze only" : r.key === "lineup" ? "family relative-height reference only" : r.key === "newyear-outfit" ? "holiday outfit reference only" : `capybara ${C.CHARS[chars[i].who].en} identity reference`}`).join(", ")+".",
+    "Preserve character identity, fur color, heart-shaped nose, eyes, ears, fingers and 3D style. Apply the following intentional shape and outfit corrections instead of copying conflicting reference shapes or clothing.",
+    `Face shape: ${C.FACE_SHAPE}.`,
+    `Body shape: ${C.BODY_SHAPE}.`,
+    "Apply facial details only where visible; never rotate a back view or source pose to reveal the face."
+  ];
+  chars.forEach(c => lines.push(`${cap(C.CHARS[c.who].en)} outfit: ${by(C.OUTFITS,c.outfit).en}.`));
+  const clothing = refs.findIndex(r=>r.key==="newyear-outfit");
+  if (clothing >= 0) lines.push(`Match Image ${clothing+1} for holiday clothing only, not for pose, orientation, expression or body proportions.`);
+  if (sourcePose) {
+    lines.push(`Pose source: Image ${refs.length}. Reproduce its exact pose, body rotation, head tilt, gaze direction, limb positions, joint angles and paw positions on each selected capybara. Preserve its expression. Do not replace the pose with a standing pose or a T-pose, and do not force the face toward the camera. Ignore poses in all other references. Keep paws in the same positions but remove held props.`);
+  } else {
+    lines.push("Pose: a quiet neutral standing stance, arms relaxed down beside the body, paws relaxed, feet naturally slightly apart. No action, no gestures, no held objects and no T-pose.");
+    lines.push(`Body orientation: ${turn.en}.`);
+    lines.push(`Gaze: ${turn.id === "back" ? "looking away in the direction of the head; eyes and face are not visible" : gaze.en}.`);
+    lines.push("Expression: a calm gentle closed-mouth smile, no visible teeth.");
+  }
+  if (chars.length>1) {
+    lines.push(`Relative heights: use Image ${refs.findIndex(r=>r.key==="lineup")+1} for scale only; do not copy its poses or outfits.`);
+    chars.forEach(c=>lines.push(heightLine(c.who)));
+    lines.push("Place the selected characters side by side with clear separation and no overlap, preserving their relative heights.");
+  } else lines.push("Centered composition with one character.");
+  lines.push("Background: solid pure white (#FFFFFF), seamless and evenly lit; no scenery, no gradient, no floor texture, no decorations, no props. Only a very soft neutral contact shadow is allowed.");
+  lines.push(`Frame: ${frame.en}; show the complete body, headwear, paws and feet without cropping. Straight-on undistorted camera at chest height; the specified body orientation or source pose takes priority.`);
+  lines.push(`Lighting: soft even neutral studio lighting. Style: ${C.STYLE}. High detail, character reference quality.`);
+  lines.push(`Avoid: ${uniq([...C.NEG_BASE,...(sourcePose ? [] : C.NEG_TEETH),...(chars.length>1 ? C.NEG_GROUP : []),"colored background","background scenery","background gradient","floor texture","held props",...(sourcePose ? [] : ["action pose","gestures","T-pose"])]).join(", ")}.`);
+  return { ...base, prompt:lines.join("\n\n"), refs, instructions:instructions(refs,frame,chars.length>1) };
+}
+
 /* ---------- новый сезонный эталон (T-поза) ---------- */
 function buildReference(outfitId) {
   const o = by(C.OUTFITS, outfitId), ch = C.CHARS[o.who], base = by(C.OUTFITS, `${o.who}-base`);
@@ -200,7 +244,7 @@ function fillAction(a, chars, state) {
 function instructions(refs, fr, multi) {
   const s = [];
   s.push("Откройте Nano Banana.");
-  s.push("Приложите эталоны строго в этом порядке: " + refs.map((r, i) => `${i + 1} — ${r.label}`).join("; ") + ". Скачать их можно кнопками ниже, номера уже в названиях файлов.");
+  s.push("Приложите эталоны строго в этом порядке: " + refs.map((r, i) => `${i + 1} — ${r.label}`).join("; ") + ". Готовые эталоны скачайте кнопками ниже; собственный исходник, если он указан, приложите отдельно последним изображением.");
   s.push(`Если есть выбор формата, поставьте ${fr.id}.`);
   s.push("Вставьте промт целиком и сгенерируйте 2–4 варианта.");
   s.push("Проверьте каждый вариант по чек-листу ниже. Не прошёл хотя бы один пункт — перегенерируйте.");

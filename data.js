@@ -18,6 +18,23 @@ const FEET = "short legs, small flat rounded feet with short toes and small dark
 const FACE_SHAPE = "a softly rounded head of the same size as the identity reference; specifically round the projecting darker-brown nose-and-mouth muzzle pad: its front outline should be a soft vertical oval, with gently convex sides, fully rounded lower corners and a curved chin; the front surface should be softly domed and blend smoothly into the cheeks, while retaining the recognizable capybara snout and small dark brown heart-shaped nose";
 const BODY_SHAPE = "a slightly slimmer build than the identity reference: reduce torso width and belly volume subtly, by about 5-8%, with a gently tapered chest and waist and a small soft belly; keep the plush toy-like softness, original head size, limb lengths and each character's relative height; dad remains broader than mom and the son remains childlike";
 
+const BODY_TURNS = [
+  { id: "front", name: "Анфас", en: "body and head facing straight toward the viewer" },
+  { id: "left34", name: "¾ влево", en: "body and head turned three-quarter toward the left edge of the image" },
+  { id: "right34", name: "¾ вправо", en: "body and head turned three-quarter toward the right edge of the image" },
+  { id: "left", name: "Профиль влево", en: "full left-facing profile, body and head facing the left edge of the image" },
+  { id: "right", name: "Профиль вправо", en: "full right-facing profile, body and head facing the right edge of the image" },
+  { id: "back", name: "Со спины", en: "back view, body and head facing away from the viewer; do not turn the head back or show the face" }
+];
+const GAZES = [
+  { id: "camera", name: "В камеру", en: "eyes looking toward the camera without changing the specified body orientation" },
+  { id: "forward", name: "По повороту головы", en: "eyes looking straight ahead in the direction the head is facing" },
+  { id: "left", name: "Влево", en: "eyes looking toward the left edge of the image" },
+  { id: "right", name: "Вправо", en: "eyes looking toward the right edge of the image" },
+  { id: "up", name: "Вверх", en: "eyes looking slightly upward" },
+  { id: "down", name: "Вниз", en: "eyes looking slightly downward" }
+];
+
 const BASE_LOOK = `3D stylized mascot character, anthropomorphic capybara, faithful 3D adaptation of a flat 2D vector cartoon character.
 Head: ${FACE_SHAPE}. Small dark brown heart-shaped glossy nose on the top front edge of the muzzle. ${EYES}. Small ears slightly pointed at the tips, pink inner ears. No visible neck. No tail.
 Body: ${BODY_SHAPE}, ${PAWS}, ${FEET}.
@@ -289,6 +306,6 @@ const CHECKLIST = [
   "Рост совпадает с семьёй: мама ≈ 88%, сын ≈ 67% от папы"
 ];
 
-return { PAL, FACE_SHAPE, BODY_SHAPE, NEWYEAR_REF, BASE_LOOK, STYLE, CHARS, SEASONS, OUTFITS, CAM, POSES, EMOTIONS, DEFAULT_EMO, OPEN_DEFAULT_EMO,
+return { PAL, FACE_SHAPE, BODY_SHAPE, BODY_TURNS, GAZES, NEWYEAR_REF, BASE_LOOK, STYLE, CHARS, SEASONS, OUTFITS, CAM, POSES, EMOTIONS, DEFAULT_EMO, OPEN_DEFAULT_EMO,
   LOCATIONS, LIGHTS, FRAMES, CAMERAS, TEXTZONE, ACTIONS, NEG_BASE, NEG_TEETH, NEG_GROUP, NEG_TPOSE, LINEUP_REF, CHECKLIST };
 })();
