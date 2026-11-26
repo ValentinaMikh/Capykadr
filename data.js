@@ -86,6 +86,7 @@ const SON_REFERENCES = {
 const REFERENCE_REVISION = "2026-11-26T11:59:25Z";
 const BUNDLED_REFERENCES = {
   ...SON_REFERENCES,
+  lineup: "../v2/family-lineup.png",
   "dad-base": "../v2/dad-spring.png", "mom-base": "../v2/mom-spring.png",
   "dad-summer": "../v2/dad-summer.png", "mom-summer": "../v2/mom-summer.png",
   "dad-autumn": "../v2/dad-autumn.png", "mom-autumn": "../v2/mom-autumn.png",
@@ -94,6 +95,7 @@ const BUNDLED_REFERENCES = {
 };
 const REFERENCE_REVISIONS = Object.fromEntries(Object.keys(BUNDLED_REFERENCES).map(key =>
   [key, key === "son-base" ? SON_REFERENCE_REVISION : REFERENCE_REVISION]));
+REFERENCE_REVISIONS.lineup = "2026-11-26T12:23:56Z";
 
 const OUTFITS = [
   /* базовые */
@@ -319,7 +321,7 @@ const NEG_TEETH = ["visible teeth", "buck teeth", "open mouth"];
 const NEG_GROUP = ["swapped outfits", "extra characters", "same height", "perspective distortion", "wide-angle lens"];
 const NEG_TPOSE = ["three-quarter view", "dynamic pose", "background scenery"];
 
-const LINEUP_REF = "Rectangle-46.jpg";
+const LINEUP_REF = "../v2/family-lineup.png";
 
 const CHECKLIST = [
   "Корпус чуть стройнее эталона; размер головы, длина лап и относительный рост сохранены",

@@ -1531,6 +1531,22 @@ test("winter son is suggested only after winter clothing is selected", async ({
       "Image 0",
     );
   }
+  await expect(page.locator('[data-dl="3"] > img')).toHaveAttribute(
+    "src",
+    "assets/figma/../v2/family-lineup.png",
+  );
+  const downloaded = page.waitForEvent("download");
+  await page.locator('[data-dl="3"]').click();
+  const stream = await (await downloaded).createReadStream();
+  const chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  expect(
+    Buffer.concat(chunks).equals(
+      require("node:fs").readFileSync(
+        require("node:path").join(__dirname, "../assets/v2/family-lineup.png"),
+      ),
+    ),
+  ).toBe(true);
   await capture(page, testInfo, "non-winter-attachments");
   await page.locator('[data-step="2"]').click();
   await page.getByLabel("На белом фоне", { exact: true }).check();
