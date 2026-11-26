@@ -814,13 +814,10 @@ test("playful loading, hover and confirmed like effects clean up without changin
   await expect(page.locator("#gList")).toHaveAttribute("aria-busy", "false");
   const card = page.locator(".gallery-card").first();
   await card.hover();
-  await expect
-    .poll(() =>
-      card.evaluate((el) =>
-        parseFloat(getComputedStyle(el, "::after").opacity),
-      ),
-    )
-    .toBeGreaterThan(0.9);
+  expect(
+    await card.evaluate((el) => getComputedStyle(el, "::after").content),
+  ).toBe("none");
+  await expect(card).toHaveCSS("box-shadow", "none");
   await card.click();
   await page.locator(".photo-like").click();
   await expect(page.locator(".photo-like")).toHaveAttribute(
@@ -895,4 +892,62 @@ test("a rejected like does not celebrate or change the saved state", async ({
   );
   await expect(page.locator(".photo-like")).toBeEnabled();
   await expect(page.locator(".ui-heart")).toHaveCount(0);
+});
+
+test("character shimmer stays behind artwork and only the newly selected character grows", async ({
+  page,
+}, testInfo) => {
+  await mockAccount(page);
+  await page.goto("/");
+  const dad = page.locator('[data-cast="dad"]');
+  await dad.hover();
+  await expect
+    .poll(() =>
+      dad
+        .locator(".character-image")
+        .evaluate((el) => parseFloat(getComputedStyle(el, "::before").opacity)),
+    )
+    .toBeGreaterThan(0.9);
+  expect(
+    await dad
+      .locator(".portrait")
+      .evaluate((el) => getComputedStyle(el).zIndex),
+  ).toBe("1");
+  expect(
+    await dad
+      .locator(".character-image")
+      .evaluate((el) => getComputedStyle(el, "::before").zIndex),
+  ).toBe("0");
+  await dad.click();
+  await expect(dad.locator(".portrait img")).toHaveClass(
+    /ui-character-selected/,
+  );
+  expect(
+    await dad
+      .locator(".portrait img")
+      .evaluate((el) => getComputedStyle(el).rotate),
+  ).toBe("none");
+  const mom = page.locator('[data-cast="mom"]');
+  await mom.click();
+  await expect(mom.locator(".portrait img")).toHaveClass(
+    /ui-character-selected/,
+  );
+  await expect(dad.locator(".portrait img")).not.toHaveClass(
+    /ui-character-selected/,
+  );
+  await expect(page.locator(".ui-character-selected")).toHaveCount(0);
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-step="2"]').click();
+  const scene = page.locator('[data-scene="walk"]');
+  await scene.hover();
+  expect(
+    await scene
+      .locator(".scene-image")
+      .evaluate((el) => getComputedStyle(el, "::after").content),
+  ).toBe("none");
+  await expect(scene.locator(".scene-image")).toHaveCSS("box-shadow", "none");
+  await page.screenshot({
+    path: testInfo.outputPath("scene-without-overlay.png"),
+    animations: "disabled",
+  });
 });
