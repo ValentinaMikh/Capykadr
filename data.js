@@ -15,11 +15,12 @@ const EYES = "small round eyes with a warm brown iris, a black pupil, a thin whi
 const PAWS = "medium-length arms ending in small rounded paws with four short chubby fingers, each finger tip with a small darker brown rounded pad";
 const FEET = "short legs, small flat rounded feet with short toes and small darker brown toe pads";
 
-const FACE_SHAPE = "a softly rounded head with full soft cheeks and a broad, gently convex rounded muzzle; smoothly curved edges and soft transitions between the forehead, cheeks and snout, keeping a recognizable capybara face and the small dark brown heart-shaped nose";
+const FACE_SHAPE = "a softly rounded head of the same size as the identity reference; specifically round the projecting darker-brown nose-and-mouth muzzle pad: its front outline should be a soft vertical oval, with gently convex sides, fully rounded lower corners and a curved chin; the front surface should be softly domed and blend smoothly into the cheeks, while retaining the recognizable capybara snout and small dark brown heart-shaped nose";
+const BODY_SHAPE = "a slightly slimmer build than the identity reference: reduce torso width and belly volume subtly, by about 5-8%, with a gently tapered chest and waist and a small soft belly; keep the plush toy-like softness, original head size, limb lengths and each character's relative height; dad remains broader than mom and the son remains childlike";
 
 const BASE_LOOK = `3D stylized mascot character, anthropomorphic capybara, faithful 3D adaptation of a flat 2D vector cartoon character.
 Head: ${FACE_SHAPE}. Small dark brown heart-shaped glossy nose on the top front edge of the muzzle. ${EYES}. Small ears slightly pointed at the tips, pink inner ears. No visible neck. No tail.
-Body: rounded, slightly pear-shaped torso with a soft belly, ${PAWS}, ${FEET}.
+Body: ${BODY_SHAPE}, ${PAWS}, ${FEET}.
 Fur: short velvety plush-like fur, warm caramel-orange color (${PAL.fur}), darker chocolate-reddish brown patch on the front of the muzzle (${PAL.muzzle}), paws and feet slightly darker orange-brown.
 Style: soft toy-like look of modern family 3D animation, rounded shapes, clean simple surfaces, smooth matte materials, subtle subsurface scattering on ears and nose. High detail.`;
 
@@ -30,17 +31,17 @@ const CHARS = {
   dad: { name: "Папа", en: "dad", h: 100, order: 1,
     trait: "невозмутимый, надёжный",
     face: `${EYES}`,
-    body: "about 3 heads tall, wide chunky almost rectangular torso with a soft round belly and sloped shoulders, the largest and most massive muzzle in the family",
+    body: "about 3 heads tall, slightly broader shoulders than mom, a gently tapered soft torso with a modest rounded belly, the largest softly rounded oval muzzle in the family",
     neg: [] },
   mom: { name: "Мама", en: "mom", h: 88, order: 2,
     trait: "тёплая, смеётся от души",
     face: `${EYES}, plus two small curved black eyelashes at the outer corner of each eye`,
-    body: "about 3 heads tall, slightly shorter and about 1.3 times slimmer than dad, soft slightly pear-shaped torso, muzzle slightly shorter and softer than dad's, slender legs with darker lower legs and feet",
+    body: "about 3 heads tall, slightly shorter and about 1.3 times slimmer than dad, a light gently tapered torso with a modest soft belly, oval muzzle slightly shorter and softer than dad's, slender legs with darker lower legs and feet",
     neg: ["long eyelashes", "makeup", "lipstick"] },
   son: { name: "Сын", en: "son", h: 67, order: 3,
     trait: "любопытный, подвижный",
     face: `${EYES}`,
-    body: "about 2.5 heads tall, a young kid capybara, head about 40% of total height, compact rounded torso with a small belly, muzzle shorter and rounder than dad's",
+    body: "about 2.5 heads tall, a young kid capybara, head about 40% of total height, a compact lightly built torso with a small soft belly, muzzle shorter and rounder than dad's",
     neg: ["skateboard", "backwards cap", "tilted cap"] }
 };
 
@@ -272,7 +273,7 @@ const ACTIONS = [
 ];
 
 /* ---------- негативы ---------- */
-const NEG_BASE = ["lost character identity", "angular head", "box-shaped muzzle", "sharp muzzle corners", "flat rectangular muzzle", "different proportions", "incorrect described outfit", "extra clothing", "missing clothing", "extra limbs", "mitten paws without fingers", "claws", "human hands", "long fur", "realistic animal", "photorealistic", "anime eyes", "big eyes", "black bead eyes without iris", "tail", "text", "watermark", "logo"];
+const NEG_BASE = ["lost character identity", "angular head", "box-shaped muzzle", "sharp muzzle corners", "flat rectangular muzzle", "altered relative heights", "emaciated body", "human hourglass waist", "straight vertical muzzle sides", "flat horizontal muzzle bottom", "rectangular nose-and-mouth pad", "incorrect described outfit", "extra clothing", "missing clothing", "extra limbs", "mitten paws without fingers", "claws", "human hands", "long fur", "realistic animal", "photorealistic", "anime eyes", "big eyes", "black bead eyes without iris", "tail", "text", "watermark", "logo"];
 const NEG_TEETH = ["visible teeth", "buck teeth", "open mouth"];
 const NEG_GROUP = ["swapped outfits", "extra characters", "same height", "perspective distortion", "wide-angle lens"];
 const NEG_TPOSE = ["three-quarter view", "dynamic pose", "background scenery"];
@@ -280,14 +281,14 @@ const NEG_TPOSE = ["three-quarter view", "dynamic pose", "background scenery"];
 const LINEUP_REF = "Rectangle-46.jpg";
 
 const CHECKLIST = [
-  "Силуэт и пропорции как у эталона",
-  "Округлая мордочка с мягкими щёчками, нос-сердечко, карие глаза с белым ободком и бровью",
+  "Корпус чуть стройнее эталона; размер головы, длина лап и относительный рост сохранены",
+  "Овальная выступающая часть мордочки с округлым подбородком, нос-сердечко, карие глаза с белым ободком и бровью",
   "Лапы с пальцами и тёмными подушечками",
   "Одежда не поменялась и не потерялась",
   "Зубы видны только при открытом рте",
   "Рост совпадает с семьёй: мама ≈ 88%, сын ≈ 67% от папы"
 ];
 
-return { PAL, FACE_SHAPE, NEWYEAR_REF, BASE_LOOK, STYLE, CHARS, SEASONS, OUTFITS, CAM, POSES, EMOTIONS, DEFAULT_EMO, OPEN_DEFAULT_EMO,
+return { PAL, FACE_SHAPE, BODY_SHAPE, NEWYEAR_REF, BASE_LOOK, STYLE, CHARS, SEASONS, OUTFITS, CAM, POSES, EMOTIONS, DEFAULT_EMO, OPEN_DEFAULT_EMO,
   LOCATIONS, LIGHTS, FRAMES, CAMERAS, TEXTZONE, ACTIONS, NEG_BASE, NEG_TEETH, NEG_GROUP, NEG_TPOSE, LINEUP_REF, CHECKLIST };
 })();
