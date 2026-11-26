@@ -254,6 +254,12 @@ const OPEN_DEFAULT_EMO = "laugh";
 
 /* ---------- локации ---------- */
 const LOCATIONS = [
+  { id: "pool", name: "У бассейна", season: "summer", en: "a sunny poolside terrace beside clear turquoise water, a low parasol and a clean dry deck" },
+  { id: "beach", name: "Пляж", season: "summer", en: "a sandy summer beach beside a calm blue sea, seashells and a softly blurred sun umbrella" },
+  { id: "bakery", name: "Кондитерская", en: "a welcoming bakery with a low customer counter, a plain cake box and a small payment terminal, no additional shop assistant" },
+  { id: "home", name: "Уютная гостиная", en: "a cozy living room with a low wooden table, soft furnishings and warm reflected light" },
+  { id: "orchard", name: "Яблоневый сад", season: "autumn", en: "a sunlit apple orchard with low branches of ripe red apples, soft grass and a wicker harvest basket" },
+
   { id: "white", name: "Белый фон", en: "plain pure white background, no scenery, soft contact shadow under the feet" },
   { id: "green", name: "Фирменный зелёный", en: `plain soft brand-green background (${PAL.clover}) with a subtle lighter gradient in the center, no scenery` },
   { id: "cream", name: "Кремовый", en: `plain warm cream background (${PAL.cream}), clean and minimal, no scenery` },

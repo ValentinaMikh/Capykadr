@@ -64,6 +64,8 @@ function build(state) {
   const issues = check(state);
   const chars = [...state.chars].sort((a, b) => a.x - b.x);           // слева направо по холсту
   const multi = chars.length > 1;
+  const situation = state.action === "none" ? window.CapyScenes?.find(state.designScene, state.designSeason) : null;
+  const staging = situation ? window.CapyScenes.describe(situation, chars) : null;
   const loc = by(C.LOCATIONS, state.location), light = by(C.LIGHTS, state.light), fr = by(C.FRAMES, state.frame);
   const act = by(C.ACTIONS, state.action), tz = by(C.TEXTZONE, state.textzone);
 
@@ -97,11 +99,11 @@ function build(state) {
     L.push(`Character details: ${ch.body}. Eyes: ${ch.face}. Paws: four short fingers with small darker brown pads.`);
     L.push(`Outfit: ${outfitDescription(o)}.`);
     if (p.prop) L.push(`Prop: ${p.prop}.`);
-    L.push(`Pose: ${poseText(p, c.who).replace("{object}", c.object || "the object")}.`);
+    L.push(`Pose: ${staging?.roles[c.who] || poseText(p, c.who).replace("{object}", c.object || "the object")}.`);
     L.push(`Expression: ${e.en}.`);
     if (act.id !== "none") L.push(`Action: ${fillAction(act, chars, state)}.`);
-    L.push(`Placement: the character stands ${placeWords(c)}.`);
-    L.push(`Scene: ${loc.en}.`);
+    L.push(`Placement: the character ${staging ? "is placed" : "stands"} ${placeWords(c)}.`);
+    L.push(`Scene: ${(staging?.setting || loc.en).replace(/[.\s]+$/, "")}.`);
     L.push(`Frame: ${fr.en}, full body visible. ${tz.en}`.trim());
     L.push(`Camera: ${camText(state, p)}.`);
   } else {
@@ -122,7 +124,7 @@ function build(state) {
       L.push(`   Outfit: ${outfitDescription(o)}.`);
       if (p.prop) L.push(`   Prop: ${p.prop}.`);
       const ov = act.override && act.override[c.who];
-      L.push(`   Pose: ${ov || poseText(p, c.who).replace("{object}", c.object || "the object")}.`);
+      L.push(`   Pose: ${ov || staging?.roles[c.who] || poseText(p, c.who).replace("{object}", c.object || "the object")}.`);
       L.push(`   Expression: ${e.en}.`);
       if (!ov || c.who !== act.offGround) L.push(`   Placement: ${placeWords(c)}.`);
     });
@@ -133,13 +135,14 @@ function build(state) {
     if (act.offGround) L.push(`The ${C.CHARS[act.offGround].en} is lifted off the ground as described, so his head is clearly above the group; everyone else stands on the same ground line.`);
     else L.push("All characters stand on the same ground line unless the pose says otherwise.");
     L.push("");
-    L.push(`Scene: ${loc.en}.`);
+    L.push(`Scene: ${(staging?.setting || loc.en).replace(/[.\s]+$/, "")}.`);
     L.push(`Frame: ${fr.en}, full bodies visible. ${tz.en}`.trim());
     L.push(`Camera: ${camText(state, null)}.`);
   }
   L.push(`Lighting: ${light.en}.`);
   L.push(`Style: ${C.STYLE}. High detail, polished key art quality.`);
-  if (state.extra) L.push(`Additional details (translate to English if needed): "${state.extra}".`);
+  if (staging) L.push(staging.staging);
+  if (state.extra && state.extra !== situation?.en) L.push(`Additional details (translate to English if needed): "${state.extra}".`);
   if (state.action === "product") L.push("Do not render any readable text or logos on the packaging; keep labels as simple shapes.");
 
   /* негатив: в Nano Banana нет отдельного поля, поэтому строка Avoid */

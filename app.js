@@ -323,6 +323,29 @@
       en: "sitting at a round cafe table, sharing tea and pastries",
     },
   ];
+  function visibleScenes() {
+    return VERSION === 2 ? window.CapyScenes.forSeason(SEASON) : SCENES;
+  }
+  function applySituation(scene) {
+    S.extra = scene.en || "";
+    S.action = "none";
+    S.product = "";
+    if (scene.location) S.location = scene.location;
+    else
+      S.location =
+        {
+          spring: "spring",
+          summer: "meadow",
+          autumn: "autumn",
+          winter: "winter",
+          newyear: "newyear",
+        }[SEASON] || "white";
+    if (scene.light) S.light = scene.light;
+    S.chars.forEach((c) => {
+      c.pose = scene.pose || "stand";
+      c.object = "";
+    });
+  }
   let STEP = 0,
     CAST = new Set(localStorage.getItem(KEY) ? S.chars.map((c) => c.who) : []),
     SEASON = S.designSeason || "",
@@ -390,6 +413,21 @@
       newyear: "newyear",
     }[id];
     S.light = ["winter", "newyear"].includes(id) ? "winter" : "golden";
+    if (VERSION === 2 && SCENE && SCENE !== "custom") {
+      const scene = window.CapyScenes.find(SCENE, id);
+      if (scene) applySituation(scene);
+      else {
+        SCENE = "";
+        S.designScene = "";
+        S.extra = "";
+        S.action = "none";
+        S.product = "";
+        S.chars.forEach((c) => {
+          c.pose = "stand";
+          c.object = "";
+        });
+      }
+    }
     fix();
   }
   function stepNav() {
@@ -491,7 +529,18 @@
     } else if (STEP === 1) {
       h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" ${VERSION === 1 && s.id === "newyear" ? 'disabled title="Доступно в версии 2"' : ""} aria-checked="${SEASON === s.id}">${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
     } else if (STEP === 2) {
-      h = `<div class="scene-workspace">${whiteControls()}${S.outputMode === "scene" ? `<div class="scene-grid">${SCENES.map((s) => `<button type="button" class="scene-choice" data-scene="${s.id}" aria-pressed="${SCENE === s.id}"><span class="scene-image">${art(s.id === "cafe" ? "914cd.png" : "268b2.png", "", s.name)}${SCENE === s.id ? `<span class="scene-check">${art("f4244.svg")}</span>` : ""}</span><span>${s.name}</span></button>`).join("")}${Array.from({ length: 4 }, () => '<div class="scene-empty" aria-hidden="true"></div>').join("")}</div>` : `<div class="white-mode-preview"><span aria-hidden="true">${S.outputMode === "neutral" ? "◇" : "↗"}</span><h2>${S.outputMode === "neutral" ? "Нейтральный эталон" : "Поза из исходника"}</h2><p>${S.outputMode === "neutral" ? "Выбранные капибары без действия, на чистом белом фоне" : "Та же поза и направление взгляда, новый белый фон"}</p></div>`}</div>`;
+      h = `<div class="scene-workspace">${whiteControls()}${
+        S.outputMode === "scene"
+          ? `<div class="scene-grid${VERSION === 2 ? " seasonal-scenes" : ""}" role="group" aria-label="Ситуации выбранного сезона">${visibleScenes()
+              .map(
+                (s) =>
+                  `<button type="button" class="scene-choice" data-scene="${s.id}" aria-pressed="${SCENE === s.id}"><span class="scene-image">${art(s.id === "cafe" ? "914cd.png" : "268b2.png", "", s.name)}${SCENE === s.id ? `<span class="scene-check">${art("f4244.svg")}</span>` : ""}</span><span>${s.name}</span></button>`,
+              )
+              .join(
+                "",
+              )}${VERSION === 1 ? Array.from({ length: 4 }, () => '<div class="scene-empty" aria-hidden="true"></div>').join("") : ""}</div>`
+          : `<div class="white-mode-preview"><span aria-hidden="true">${S.outputMode === "neutral" ? "◇" : "↗"}</span><h2>${S.outputMode === "neutral" ? "Нейтральный эталон" : "Поза из исходника"}</h2><p>${S.outputMode === "neutral" ? "Выбранные капибары без действия, на чистом белом фоне" : "Та же поза и направление взгляда, новый белый фон"}</p></div>`
+      }</div>`;
     } else {
       LAST = B.build(S);
       h = `<div class="result-layout"><aside class="reference-panel"><h2>Прикрепите к промту</h2><div class="reference-grid" tabindex="0" role="group" aria-label="Референсы для скачивания">${LAST.refs.map((r, i) => (r.external ? `<div class="reference-external"><span aria-hidden="true">↗</span><b>Ваш исходник</b><small>Приложите изображением ${i + 1} в генераторе</small></div>` : `<button type="button" data-dl="${i}" aria-label="Скачать: ${esc(r.label)}" title="${esc(r.label)}"><img src="${esc(REFURL[r.key] || ART + (REF_ART[r.key] || REF_ART[`${r.key.split("-")[0]}-base`]))}" alt="${esc(r.label)}"><span><picture><source media="(max-width: 640px)" srcset="${ART}9cf08.svg"><source media="(max-width: 900px)" srcset="${ART}${i < 2 ? "70550.svg" : "d156f.svg"}">${art("37a62.svg")}</picture></span></button>`)).join("")}${Array.from({ length: Math.max(0, 6 - LAST.refs.length) }, () => '<div class="reference-empty" aria-hidden="true"></div>').join("")}</div></aside><div class="prompt-panel"><pre tabindex="0" aria-label="Промт">${esc(LAST.prompt)}</pre><span class="prompt-scrollbar" aria-hidden="true"><i></i></span>${LAST.issues.length ? `<p role="alert" class="err">${LAST.issues.map(esc).join(". ")}</p>` : ""}</div>${examples()}</div>`;
@@ -554,22 +603,9 @@
     } else if (d.scene) {
       SCENE = d.scene;
       S.designScene = SCENE;
-      const s = SCENES.find((s) => s.id === SCENE);
-      S.action = "none";
-      S.extra = s.en || "";
-      if (s.location) S.location = s.location;
-      else
-        S.location =
-          {
-            spring: "spring",
-            summer: "meadow",
-            autumn: "autumn",
-            winter: "winter",
-            newyear: "newyear",
-          }[SEASON] || "white";
-      S.chars.forEach((c) => {
-        c.pose = s.pose || "stand";
-      });
+      const s = visibleScenes().find((s) => s.id === SCENE);
+      if (!s) return;
+      applySituation(s);
       fix();
       save();
     } else if (d.step !== undefined) {
@@ -620,7 +656,23 @@
         )
         .join("");
     modal(
-      `<h2>Описать действие</h2><form id="sceneForm"><label class="f" for="sceneExtra">Что делают персонажи</label><textarea id="sceneExtra">${esc(S.extra)}</textarea><label class="f" for="sceneLoc">Место</label><select id="sceneLoc">${options(C.LOCATIONS, S.location)}</select><label class="f" for="sceneAction">Совместное действие</label><select id="sceneAction">${options(
+      `<h2>Описать действие</h2><form id="sceneForm"><label class="f" for="sceneExtra">Что делают персонажи</label><textarea id="sceneExtra">${esc(
+        VERSION === 2 && window.CapyScenes.find(SCENE, SEASON)
+          ? window.CapyScenes.describe(
+              window.CapyScenes.find(SCENE, SEASON),
+              S.chars,
+            ).setting +
+              "\n" +
+              Object.entries(
+                window.CapyScenes.describe(
+                  window.CapyScenes.find(SCENE, SEASON),
+                  S.chars,
+                ).roles,
+              )
+                .map(([who, role]) => who + ": " + role)
+                .join("\n")
+          : S.extra,
+      )}</textarea><label class="f" for="sceneLoc">Место</label><select id="sceneLoc">${options(C.LOCATIONS, S.location)}</select><label class="f" for="sceneAction">Совместное действие</label><select id="sceneAction">${options(
         C.ACTIONS.filter((a) => !B.actionAllowed(a, S.chars, B.sceneSeason(S))),
         S.action,
       )}</select><label class="f" for="sceneProduct">Предмет или продукт</label><input id="sceneProduct" type="text" value="${esc(S.product)}">${S.chars

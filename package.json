@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "node tests/prompts.cjs && node tests/gallery-examples.cjs && playwright test",
-    "test:syntax": "node --check app.js && node --check gallery-examples.js && node --check builder.js && node --check data.js && node --check motion.js && node --check versions.js && node --check legacy/data-v1.js && node --check legacy/builder-v1.js"
+    "test": "node tests/prompts.cjs && node tests/gallery-examples.cjs && node tests/situations.cjs && playwright test",
+    "test:syntax": "node --check app.js && node --check gallery-examples.js && node --check situations.js && node --check builder.js && node --check data.js && node --check motion.js && node --check versions.js && node --check legacy/data-v1.js && node --check legacy/builder-v1.js"
   },
   "devDependencies": {
     "@playwright/test": "1.65.1"

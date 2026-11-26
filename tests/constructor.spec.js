@@ -1757,3 +1757,84 @@ test("unavailable gallery leaves the constructor usable and explains missing exa
   await expect(page.locator(".prompt-panel pre")).toContainText("capybara");
   await expect(page.locator("#copyBtn")).toBeEnabled();
 });
+
+for (const width of [390, 1440])
+  test(`seasonal story catalog, detailed prompts and New Year interactions work at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: 1080 });
+    await openFamily(page);
+    await page.locator("#chooseBtn").click();
+    const cases = [
+      ["spring", "seedlings", "seedling"],
+      ["summer", "pool-game", "beach ball"],
+      ["autumn", "pie", "apple slices"],
+      ["winter", "gingerbread", "gingerbread"],
+      ["newyear", "gift-card", "blank gift card"],
+    ];
+    for (const [season, id, phrase] of cases) {
+      await page.locator('[data-step="1"]').click();
+      await page.locator(`[data-season="${season}"]`).click();
+      await page.locator('[data-step="2"]').click();
+      await expect(page.locator(".scene-choice")).toHaveCount(
+        season === "newyear" ? 12 : 10,
+      );
+      await expect(page.locator('[data-scene="pool-game"]')).toHaveCount(
+        season === "summer" ? 1 : 0,
+      );
+      await page.locator(`[data-scene="${id}"]`).click();
+      if (season === "newyear")
+        await capture(page, testInfo, "newyear-situations-" + width);
+      await page.locator("#chooseBtn").click();
+      await expect(page.locator(".prompt-panel pre")).toContainText(phrase);
+      await expect(page.locator(".prompt-panel pre")).toContainText(
+        "exactly the selected 3 capybaras",
+      );
+      await expect(page.locator(".prompt-panel pre")).not.toContainText(
+        "{next}",
+      );
+      await expect(page.locator(".prompt-panel pre")).not.toContainText(
+        "Image 0",
+      );
+    }
+    await page.reload();
+    await page.locator('[data-step="2"]').click();
+    await expect(page.locator('[data-scene="gift-card"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await page.locator('[data-scene="newyear-photo"]').click();
+    expect(
+      await page.locator(".seasonal-scenes").evaluate((el) => el.scrollTop),
+    ).toBeGreaterThan(0);
+    await page.locator('[data-step="1"]').click();
+    await page.locator('[data-season="summer"]').click();
+    await page.locator('[data-step="2"]').click();
+    await expect(page.locator("#chooseBtn")).toBeDisabled();
+    await expect(page.locator('[data-scene="gift-card"]')).toHaveCount(0);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(width);
+  });
+
+test("single-character gift cards do not request an unselected recipient", async ({
+  page,
+}) => {
+  await mockAccount(page);
+  await page.goto("/");
+  await page.locator('[data-cast="dad"]').click();
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-season="newyear"]').click();
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-scene="gift-card"]').click();
+  await page.locator("#chooseBtn").click();
+  await expect(page.locator(".prompt-panel pre")).toContainText(
+    "facing the viewer at chest height",
+  );
+  await expect(page.locator(".prompt-panel pre")).not.toContainText(
+    "accepts the gift-card sleeve",
+  );
+  await expect(page.locator(".prompt-panel pre")).toContainText(
+    "no additional characters",
+  );
+});
