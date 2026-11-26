@@ -28,6 +28,7 @@ const state = (whos, season = "base") => ({
 for (const outfit of C.OUTFITS) {
   const result = B.buildReference(outfit.id);
   assert.ok(result.prompt.includes(C.FACE_SHAPE), outfit.id);
+  assert.ok(result.prompt.includes(C.BODY_SHAPE), outfit.id);
   assert.ok(!result.prompt.includes("boxy muzzle"));
 }
 for (const whos of [
@@ -41,6 +42,14 @@ for (const whos of [
     const result = B.build(state(whos, season));
     assert.equal(result.issues.length, 0);
     assert.ok(result.prompt.includes(C.FACE_SHAPE));
+    assert.ok(result.prompt.includes("soft vertical oval"));
+    assert.ok(
+      result.prompt.includes("fully rounded lower corners and a curved chin"),
+    );
+    assert.ok(result.prompt.includes(C.BODY_SHAPE));
+    assert.ok(result.prompt.includes("5-8%"));
+    assert.ok(!result.prompt.includes("wide chunky almost rectangular torso"));
+    assert.ok(!result.prompt.includes("preserve body proportions"));
     assert.ok(!result.prompt.includes("Keep exactly the same face"));
     if (season === "newyear") {
       const outfitIndex = result.refs.findIndex(
@@ -75,5 +84,5 @@ for (const who of ["dad", "mom", "son"]) {
   );
 }
 console.log(
-  "Prompt checks passed: rounded faces, all outfits, New Year clothing and reference numbering.",
+  "Prompt checks passed: oval muzzles, slimmer builds, all outfits, New Year clothing and reference numbering.",
 );
