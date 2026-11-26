@@ -237,7 +237,8 @@
     "mom-base": "2cbd4.png",
     "son-base": "74fc8.png",
     lineup: "e1d62.png",
-    "newyear-outfit": "newyear-outfit.png",
+    "newyear-outfit": "capybara-style-v2.png",
+    "style-reference": "capybara-style-v2.png",
   };
   const SEASONS = [
     { id: "spring", name: "Весна", wash: "4d9e4.svg", icon: "f5fba.svg" },
@@ -361,7 +362,7 @@
   }
   function familyPreview() {
     if (SEASON === "newyear")
-      return `<div class="family-preview newyear"><img class="newyear-outfit-preview" src="${ART}newyear-outfit.png" alt="Новогодний образ: красная шапка, свитер с белым зимним узором и зелёный шарф"><p class="newyear-outfit-caption">Одежда для выбранных персонажей</p></div>`;
+      return `<div class="family-preview newyear"><img class="newyear-outfit-preview" src="${ART}capybara-style-v2.png" alt="Новогодний образ: красная шапка, свитер с белым зимним узором и зелёный шарф"><p class="newyear-outfit-caption">Одежда для выбранных персонажей</p></div>`;
     const selected = WHO.filter((w) => CAST.has(w));
     return `<div class="family-preview ${esc(SEASON)}"><div class="family-art" data-count="${selected.length}">${selected
       .map(

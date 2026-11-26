@@ -214,7 +214,7 @@ test("complete family, every season, scene, references, custom prompt and persis
   await expect(page.locator(".prompt-panel pre")).toContainText(
     "cozy cafe interior",
   );
-  await expect(page.locator("[data-dl]")).toHaveCount(4);
+  await expect(page.locator("[data-dl]")).toHaveCount(5);
   await capture(page, testInfo, "prompt");
   const download = page.waitForEvent("download");
   await page.locator('[data-dl="0"]').click();
@@ -776,6 +776,10 @@ test("New Year uses the supplied outfit reference and survives reload", async ({
   await page.locator("#chooseBtn").click();
   await page.locator('[data-season="newyear"]').click();
   await expect(page.locator(".newyear-outfit-preview")).toBeVisible();
+  await expect(page.locator(".newyear-outfit-preview")).toHaveAttribute(
+    "src",
+    "assets/figma/capybara-style-v2.png",
+  );
   await capture(page, testInfo, "newyear-outfit");
   await page.locator("#chooseBtn").click();
   await page.locator('[data-scene="walk"]').click();
@@ -783,9 +787,13 @@ test("New Year uses the supplied outfit reference and survives reload", async ({
   const prompt = page.locator(".prompt-panel pre");
   await expect(prompt).toContainText("softly rounded head");
   await expect(prompt).toContainText("sage-green knitted scarf");
+  await expect(prompt).toContainText("latest style image takes priority");
+  await expect(prompt).toContainText("bare furry legs and rounded bare feet");
   await expect(prompt).toContainText("New Year celebration");
   await expect(prompt).toContainText("match Image 4");
-  await expect(prompt).toContainText("Image 5 = holiday outfit reference only");
+  await expect(prompt).toContainText(
+    "Image 5 = visual style and holiday outfit reference",
+  );
   await expect(page.locator("[data-dl]")).toHaveCount(5);
   const download = page.waitForEvent("download");
   await page.locator('[data-dl="4"]').click();
@@ -800,6 +808,8 @@ test("New Year uses the supplied outfit reference and survives reload", async ({
   await page.reload();
   await page.locator('[data-step="3"]').click();
   await expect(prompt).toContainText("sage-green knitted scarf");
+  await expect(prompt).toContainText("latest style image takes priority");
+  await expect(prompt).toContainText("bare furry legs and rounded bare feet");
   await capture(page, testInfo, "newyear-prompt");
 });
 
