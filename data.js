@@ -15,8 +15,8 @@ const EYES = "small expressive dark brown eyes; when open, a subtle warm brown i
 const PAWS = "medium-length arms ending in small rounded paws with four short chubby fingers, each finger tip with a small darker brown rounded pad";
 const FEET = "short legs, small flat rounded feet with short toes and small darker brown toe pads";
 
-const FACE_SHAPE = "a softly rounded head with soft rounded cheeks and a short, broad projecting darker-brown nose-and-mouth muzzle pad; its front is a soft vertical oval with gently convex sides, fully rounded lower corners and a curved chin; a softly domed front surface and seamless plush transitions, a small glossy dark chocolate heart-shaped nose, small rounded ears with pink interiors; match the latest visual style reference rather than the older rectangular model";
-const BODY_SHAPE = "compact toy-like proportions matching the latest visual style reference: a large rounded head, a short gently tapered torso with a modest soft belly, short sturdy legs and rounded paws; lightly built rather than bulky, retaining plush softness; keep dad, mom and son recognizable and preserve their relative family heights, but use the new reference for the head-to-body ratio rather than copying the older elongated proportions";
+const FACE_SHAPE = "a softly rounded head with the same original width, height and cranial silhouette as each character's identity reference; a clearly forward-projecting capybara muzzle with a gently rounded rectangular front, a broad gently flattened nose-and-mouth surface and softly curved edges, not a spherical or inflated oval; restrained cheek volume with no bulging cheek pads and a gently curved lower jaw; dad has the longest adult snout, mom has a slightly shorter and slimmer adult snout, and son has a smaller youthful snout that still projects forward rather than becoming stubby or puffy; keep the small glossy dark chocolate heart-shaped nose and rounded ears";
+const BODY_SHAPE = "preserve the original identity-reference head-to-body ratio, original head size and width-to-height ratio, limb lengths and relative family heights; do not enlarge the head or shorten the body into chibi proportions; retain a lightly built soft torso with a modest belly and plush surface texture, dad remains broader than mom and the son remains childlike";
 
 const BODY_TURNS = [
   { id: "front", name: "Анфас", en: "body and head facing straight toward the viewer" },
@@ -41,24 +41,24 @@ Body: ${BODY_SHAPE}, ${PAWS}, ${FEET}.
 Fur: short velvety plush-like fur, warm caramel-orange color (${PAL.fur}), darker chocolate-reddish brown patch on the front of the muzzle (${PAL.muzzle}), paws and feet slightly darker orange-brown.
 Style: polished plush 3D mascot, compact rounded forms, finely visible short fur fibers and tactile fabric textures, matte fur and a softly glossy nose. High detail.`;
 
-const STYLE = "polished plush 3D capybara mascot matching the latest visual style reference, warm caramel-orange fur with short dense finely visible fuzzy fibers, rounded sculpted forms and soft cheeks, matte soft-touch surfaces contrasted with a small glossy chocolate nose, soft studio-quality lighting and gentle ambient occlusion; on knitted clothing show thick individual yarn loops, ribbed cuffs, crisp Fair Isle snowflakes and zigzags, and braided cable stitches with long fringe on scarves; keep other clothing materials appropriate to the selected outfit, not plastic or flat vector art";
+const STYLE = "polished plush 3D capybara mascot matching the latest visual style reference, warm caramel-orange fur with short dense finely visible fuzzy fibers, softly rounded surface edges and restrained cheek volume, matte soft-touch surfaces contrasted with a small glossy chocolate nose, soft studio-quality lighting and gentle ambient occlusion; on knitted clothing show thick individual yarn loops, ribbed cuffs, crisp Fair Isle snowflakes and zigzags, and braided cable stitches with long fringe on scarves; keep other clothing materials appropriate to the selected outfit, not plastic or flat vector art";
 
 /* ---------- персонажи ---------- */
 const CHARS = {
   dad: { name: "Папа", en: "dad", h: 100, order: 1,
     trait: "невозмутимый, надёжный",
     face: `${EYES}`,
-    body: "an adult with compact plush proportions, slightly broader shoulders than mom, a gently tapered soft torso with a modest rounded belly, the largest softly rounded oval muzzle in the family",
+    body: "an adult with the original proportions of about 3 heads tall, slightly broader shoulders than mom, a gently tapered soft torso with a modest belly, a forward-projecting adult muzzle with softly rounded edges and restrained cheeks",
     neg: [] },
   mom: { name: "Мама", en: "mom", h: 88, order: 2,
     trait: "тёплая, смеётся от души",
     face: `${EYES}, plus two small curved black eyelashes at the outer corner of each eye`,
-    body: "an adult with compact plush proportions, slightly shorter and about 1.3 times slimmer than dad, a light gently tapered torso with a modest soft belly, oval muzzle slightly shorter and softer than dad's, slender legs with darker lower legs and feet",
+    body: "an adult with the original proportions of about 3 heads tall, slightly shorter and about 1.3 times slimmer than dad, a light gently tapered torso with a modest soft belly, a forward-projecting muzzle slightly shorter and slimmer than dad's, without puffy cheeks, slender legs with darker lower legs and feet",
     neg: ["long eyelashes", "makeup", "lipstick"] },
   son: { name: "Сын", en: "son", h: 67, order: 3,
     trait: "любопытный, подвижный",
     face: `${EYES}`,
-    body: "a young kid capybara with a proportionally larger rounded head and short legs, a compact lightly built torso with a small soft belly, muzzle shorter and rounder than dad's",
+    body: "a young kid capybara with the original proportions of about 2.5 heads tall, head about 40% of total height, a lightly built torso with a small soft belly, a smaller youthful muzzle that projects forward with softly rounded edges and no swollen cheek pads",
     neg: ["skateboard", "backwards cap", "tilted cap"] }
 };
 
@@ -292,7 +292,7 @@ const ACTIONS = [
 ];
 
 /* ---------- негативы ---------- */
-const NEG_BASE = ["lost character identity", "angular head", "box-shaped muzzle", "sharp muzzle corners", "flat rectangular muzzle", "altered relative heights", "emaciated body", "human hourglass waist", "straight vertical muzzle sides", "flat horizontal muzzle bottom", "rectangular nose-and-mouth pad", "incorrect described outfit", "extra clothing", "missing clothing", "extra limbs", "mitten paws without fingers", "claws", "human hands", "long fur", "realistic animal", "photorealistic", "anime eyes", "big eyes", "black bead eyes without iris", "tail", "text", "watermark", "logo"];
+const NEG_BASE = ["lost character identity", "angular head", "sharp-edged muzzle", "sharp muzzle corners", "spherical muzzle", "inflated cheek pads", "oversized chibi head", "altered relative heights", "emaciated body", "human hourglass waist", "straight vertical muzzle sides", "flat horizontal muzzle bottom", "sharp rectangular nose-and-mouth pad", "incorrect described outfit", "extra clothing", "missing clothing", "extra limbs", "mitten paws without fingers", "claws", "human hands", "long fur", "realistic animal", "photorealistic", "anime eyes", "big eyes", "black bead eyes without iris", "tail", "text", "watermark", "logo"];
 const NEG_TEETH = ["visible teeth", "buck teeth", "open mouth"];
 const NEG_GROUP = ["swapped outfits", "extra characters", "same height", "perspective distortion", "wide-angle lens"];
 const NEG_TPOSE = ["three-quarter view", "dynamic pose", "background scenery"];
@@ -301,7 +301,7 @@ const LINEUP_REF = "Rectangle-46.jpg";
 
 const CHECKLIST = [
   "Корпус чуть стройнее эталона; размер головы, длина лап и относительный рост сохранены",
-  "Овальная выступающая часть мордочки с округлым подбородком, нос-сердечко, маленькие выразительные карие глаза и мягкие брови",
+  "Выступающая вперёд мордочка со скруглёнными краями, без пухлых щёк, нос-сердечко, маленькие выразительные карие глаза и мягкие брови",
   "Лапы с пальцами и тёмными подушечками",
   "Одежда не поменялась и не потерялась",
   "Зубы видны только при открытом рте",

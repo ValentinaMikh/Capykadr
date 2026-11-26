@@ -88,7 +88,7 @@ function build(state) {
   if (!multi) {
     const c = chars[0], ch = C.CHARS[c.who], o = by(C.OUTFITS, c.outfit), p = by(C.POSES, c.pose), e = emotion(c, p);
     if (e.mouth === "open") mouthOpen.push(c.who);
-    L.push(`Use the attached image as a strict character reference: capybara ${ch.en}. Preserve the character identity, heart-shaped nose, eyes, eyebrows, ears, paws, relative family height and fur color. Apply the new muzzle shape and compact plush body instructions below. The outfit description below is authoritative: replace any conflicting reference clothing with the described outfit, without adding unrelated clothing.`);
+    L.push(`Use the attached image as a strict character reference: capybara ${ch.en}. Preserve the character identity, heart-shaped nose, eyes, eyebrows, ears, paws, relative family height and fur color. Apply the new muzzle shape and original-proportion body instructions below. The outfit description below is authoritative: replace any conflicting reference clothing with the described outfit, without adding unrelated clothing.`);
     L.push(`Face shape: ${C.FACE_SHAPE}.`);
     L.push(`Body shape: ${C.BODY_SHAPE}.`);
     L.push(styleInstructions(refs));
@@ -106,7 +106,7 @@ function build(state) {
   } else {
     L.push("Use the attached reference images as strict character references:");
     L.push(refs.map((r, i) => `Image ${i + 1} = ${r.key === "lineup" ? "lineup reference for relative height" : r.key === "newyear-outfit" ? "visual style and holiday outfit reference" : r.key === "style-reference" ? "latest visual style reference only" : `capybara ${C.CHARS[chars[i].who].en}`}`).join(", ") + ".");
-    L.push("Preserve each character identity, heart-shaped nose, eyes, eyebrows, ears, paws, fur color, relative family height and recognizable identity. Apply the new muzzle shape and compact plush body instructions below to every character. Each outfit description below is authoritative: replace conflicting reference clothing with the described outfit. Do not swap clothing between characters.");
+    L.push("Preserve each character identity, heart-shaped nose, eyes, eyebrows, ears, paws, fur color, relative family height and recognizable identity. Apply the new muzzle shape and original-proportion body instructions below to every character. Each outfit description below is authoritative: replace conflicting reference clothing with the described outfit. Do not swap clothing between characters.");
     L.push(`Face shape for every character: ${C.FACE_SHAPE}.`);
     L.push(`Body shape for every character: ${C.BODY_SHAPE}.`);
     L.push(styleInstructions(refs));
@@ -210,7 +210,7 @@ function buildReference(outfitId) {
   const o = by(C.OUTFITS, outfitId), ch = C.CHARS[o.who], base = by(C.OUTFITS, `${o.who}-base`);
   const refs = [{ key: base.id, file: base.ref, label: `${ch.name} · базовый` }, { ...(o.season === "newyear" ? C.NEWYEAR_REF : C.STYLE_REF) }];
   const p = [
-    `Use the attached image as a strict character reference: capybara ${ch.en}. Preserve the character identity, heart-shaped nose, eyes with eyebrows${o.who === "mom" ? " and two eyelashes on each eye" : ""}, ears, paws with fingers and dark pads, fur color, relative family height and recognizable identity. Apply the new muzzle shape and compact plush body instructions below and replace the outfit with the outfit described below.`,
+    `Use the attached image as a strict character reference: capybara ${ch.en}. Preserve the character identity, heart-shaped nose, eyes with eyebrows${o.who === "mom" ? " and two eyelashes on each eye" : ""}, ears, paws with fingers and dark pads, fur color, relative family height and recognizable identity. Apply the new muzzle shape and original-proportion body instructions below and replace the outfit with the outfit described below.`,
     `Face shape: ${C.FACE_SHAPE}.`,
     `Body shape: ${C.BODY_SHAPE}.`,
     styleInstructions(refs),
@@ -230,7 +230,7 @@ function buildReference(outfitId) {
 
 function styleInstructions(refs) {
   const index = refs.findIndex(r => ["style-reference", "newyear-outfit"].includes(r.key));
-  return `Visual style authority: Image ${index+1}. Match its compact plush 3D silhouette, rounded muzzle geometry, head-to-body proportions, short fuzzy fur, rounded paws and tactile material finish. When older identity references differ, this latest style image takes priority for visual appearance. Keep the chosen character identities and relative family heights. Do not copy its waving pose, gaze, smiling expression, tangerine or background; use the selected pose and expression, and the outfit described for each character.`;
+  return `Visual style authority for rendering and materials: Image ${index+1}. Match its short fuzzy fur, tactile textiles, rounded paws, matte finish and lighting quality. The latest style image takes priority for surface rendering only, never for head size, head-to-body proportions, cheek volume or muzzle silhouette. For those, the original identity references and the explicit Face shape instructions above take priority. Do not copy inflated cheeks, a shortened snout or an enlarged head from a style image. Keep the chosen character identities and relative family heights. Do not copy its waving pose, gaze, smiling expression, tangerine or background; use the selected pose and expression, and the outfit described for each character.`;
 }
 
 /* ---------- вспомогательное ---------- */
