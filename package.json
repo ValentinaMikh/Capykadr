@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "test": "node tests/prompts.cjs && playwright test",
-    "test:syntax": "node --check app.js && node --check builder.js && node --check data.js"
+    "test:syntax": "node --check app.js && node --check builder.js && node --check data.js && node --check motion.js"
   },
   "devDependencies": {
     "@playwright/test": "1.65.1"

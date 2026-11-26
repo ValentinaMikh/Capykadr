@@ -2119,3 +2119,238 @@ fieldset {
   font-size: 16px;
   text-align: center;
 }
+
+/* Playful, brief feedback with no layout shifts. */
+button,
+.nav a {
+  transition:
+    scale 140ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+button:not(:disabled):active,
+.nav a:active {
+  scale: 0.97;
+}
+button:focus-visible,
+.nav a:focus-visible {
+  outline: 2px solid #cad95a;
+  outline-offset: 4px;
+}
+.ui-enter {
+  animation: capy-reveal 320ms ease-out both;
+  animation-delay: var(--enter-delay, 0ms);
+}
+@keyframes capy-reveal {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+#modal > .wrap {
+  animation: capy-reveal 180ms ease-out both;
+}
+#modal .win {
+  animation: capy-reveal 260ms ease-out both;
+}
+.toast:not([hidden]),
+.menu:not([hidden]) {
+  animation: capy-reveal 200ms ease-out both;
+}
+.character-choice[aria-pressed="true"] .portrait img {
+  animation: capy-wiggle 380ms ease-out;
+  transform-origin: 50% 75%;
+}
+@keyframes capy-wiggle {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  30% {
+    rotate: -2deg;
+  }
+  65% {
+    rotate: 1.5deg;
+  }
+}
+.character-image,
+.scene-image,
+.gallery-card,
+.example-button {
+  position: relative;
+  isolation: isolate;
+}
+.example-button {
+  overflow: hidden;
+}
+.character-image::after,
+.scene-image::after,
+.gallery-card::after,
+.example-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 15%,
+    #cad95a55 35%,
+    #fff6bd55 50%,
+    #ff9bb755 65%,
+    transparent 85%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 50%;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .character-choice:hover .character-image::after,
+  .scene-choice:hover .scene-image::after,
+  .gallery-card:hover::after,
+  .example-button:hover::after {
+    opacity: 1;
+    animation: capy-sheen 1800ms ease-in-out infinite alternate;
+  }
+  .character-choice:hover .character-image,
+  .scene-choice:hover .scene-image,
+  .gallery-card:hover,
+  .example-button:hover {
+    box-shadow:
+      0 0 0 2px #cad95a55,
+      0 8px 24px #0003;
+  }
+}
+@keyframes capy-sheen {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0% 50%;
+  }
+}
+.ui-success {
+  animation: capy-success 450ms ease-out;
+}
+@keyframes capy-success {
+  35% {
+    box-shadow: 0 0 0 7px #cad95a44;
+  }
+  100% {
+    box-shadow: 0 0 0 12px #cad95a00;
+  }
+}
+.gallery-skeleton {
+  height: 248px;
+  border-radius: 48px;
+  background: linear-gradient(110deg, #2c2f33 20%, #414549 45%, #2c2f33 70%);
+  background-size: 250% 100%;
+  animation: capy-sheen 1400ms ease-in-out infinite alternate;
+}
+.ui-effects {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+  overflow: hidden;
+}
+.ui-effects > span {
+  position: absolute;
+  pointer-events: none;
+}
+.ui-press-ring {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #cad95aaa;
+  border-radius: 50%;
+  animation: capy-press 320ms ease-out both;
+}
+@keyframes capy-press {
+  from {
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 0.75;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0;
+  }
+}
+.ui-heart {
+  color: var(--heart-color);
+  font:
+    700 23px/1 Arial,
+    sans-serif;
+  animation: capy-heart 760ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: var(--heart-delay);
+  text-shadow: 0 2px 8px #0003;
+}
+@keyframes capy-heart {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  65% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(-50% + var(--heart-x)),
+        calc(-50% + var(--heart-y))
+      )
+      rotate(var(--heart-turn)) scale(0.7);
+    opacity: 0;
+  }
+}
+@media (max-width: 900px) {
+  .gallery-skeleton {
+    border-radius: 32px;
+  }
+}
+@media (max-width: 640px) {
+  .gallery-skeleton {
+    height: auto;
+    aspect-ratio: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-effects {
+    display: none;
+  }
+  button:not(:disabled):active,
+  .nav a:active {
+    scale: 1;
+  }
+}
+.scene-image::after {
+  border-radius: 48px;
+}
+@media (max-width: 900px) {
+  .scene-image::after {
+    border-radius: 28px;
+  }
+}
+@media (max-width: 640px) {
+  .result-layout .example-button {
+    border-radius: 36px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
