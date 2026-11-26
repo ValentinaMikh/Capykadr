@@ -2085,3 +2085,10 @@ fieldset {
     margin: 0;
   }
 }
+
+/* Keep a single character or a pair centred without changing their scale. */
+.family-art[data-count="1"] > div,
+.family-art[data-count="2"] > div {
+  left: var(--family-center);
+  transform: translateX(-50%);
+}
