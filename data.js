@@ -15,8 +15,10 @@ const EYES = "small round eyes with a warm brown iris, a black pupil, a thin whi
 const PAWS = "medium-length arms ending in small rounded paws with four short chubby fingers, each finger tip with a small darker brown rounded pad";
 const FEET = "short legs, small flat rounded feet with short toes and small darker brown toe pads";
 
+const FACE_SHAPE = "a softly rounded head with full soft cheeks and a broad, gently convex rounded muzzle; smoothly curved edges and soft transitions between the forehead, cheeks and snout, keeping a recognizable capybara face and the small dark brown heart-shaped nose";
+
 const BASE_LOOK = `3D stylized mascot character, anthropomorphic capybara, faithful 3D adaptation of a flat 2D vector cartoon character.
-Head: large head with a long, forward-extending, boxy rectangular muzzle with softly rounded corners and a flat front. Small dark brown heart-shaped glossy nose on the top front edge of the muzzle. ${EYES}. Small ears slightly pointed at the tips, pink inner ears. No visible neck. No tail.
+Head: ${FACE_SHAPE}. Small dark brown heart-shaped glossy nose on the top front edge of the muzzle. ${EYES}. Small ears slightly pointed at the tips, pink inner ears. No visible neck. No tail.
 Body: rounded, slightly pear-shaped torso with a soft belly, ${PAWS}, ${FEET}.
 Fur: short velvety plush-like fur, warm caramel-orange color (${PAL.fur}), darker chocolate-reddish brown patch on the front of the muzzle (${PAL.muzzle}), paws and feet slightly darker orange-brown.
 Style: soft toy-like look of modern family 3D animation, rounded shapes, clean simple surfaces, smooth matte materials, subtle subsurface scattering on ears and nose. High detail.`;
@@ -45,8 +47,11 @@ const CHARS = {
 /* ---------- сезоны и одежда ----------
    ref — файл эталона в T-позе из папки «Капибары рефы». null = эталона нет. */
 const SEASONS = [
-  ["base", "Базовый"], ["spring", "Весна"], ["summer", "Лето"], ["autumn", "Осень"], ["winter", "Зима"]
+  ["base", "Базовый"], ["spring", "Весна"], ["summer", "Лето"], ["autumn", "Осень"], ["winter", "Зима"], ["newyear", "Новый год"]
 ];
+
+const NEWYEAR_OUTFIT = "a red knitted beanie with a folded ribbed brim and white zigzag bands; a cozy red knitted Fair Isle sweater with white snowflakes and white zigzag bands across the chest and sleeves; a chunky muted sage-green knitted scarf with a subtle herringbone texture wrapped around the neck, matching the attached holiday outfit reference";
+const NEWYEAR_REF = { key: "newyear-outfit", file: "newyear-outfit.png", label: "Новый год · референс одежды" };
 
 const OUTFITS = [
   /* базовые */
@@ -105,7 +110,18 @@ const OUTFITS = [
     keep: "sweater, skirt, earmuffs, scarf", neg: ["trousers", "hat", "beanie"] },
   { id: "son-winter", who: "son", season: "winter", name: "Шапка с помпоном и зелёный шарф", ref: "Rectangle-55.jpg", noCap: true,
     en: `red knitted Christmas sweater (${PAL.red}) with large off-white snowflake motifs; red knitted beanie with off-white chevron bands and a fluffy green pompom (${PAL.green}) sitting straight; green knitted scarf (${PAL.green}) with a lighter chevron pattern and scalloped ends; bare legs, barefoot`,
-    keep: "sweater, beanie, scarf", neg: ["baseball cap", "T-shirt", "shorts", "sneakers", "trousers", "tilted beanie"] }
+    keep: "sweater, beanie, scarf", neg: ["baseball cap", "T-shirt", "shorts", "sneakers", "trousers", "tilted beanie"] },
+  /* Новый год: одежда по пользовательскому фотореференсу. */
+  { id: "dad-newyear", who: "dad", season: "newyear", name: "Красная шапка, узорный свитер и зелёный шарф", ref: null,
+    en: `${NEWYEAR_OUTFIT}; keep dad's beige chino trousers with rolled-up cuffs and bare feet from his identity reference`,
+    keep: "beanie, patterned sweater, green scarf, trousers", neg: ["yellow scarf", "baseball cap", "striped sweater"] },
+  { id: "mom-newyear", who: "mom", season: "newyear", name: "Красная шапка, узорный свитер и зелёный шарф", ref: null,
+    en: `${NEWYEAR_OUTFIT}; keep mom's red-and-off-white striped pleated skirt and bare feet from her identity reference`,
+    keep: "beanie, patterned sweater, green scarf, skirt", neg: ["earmuffs", "beret", "trousers", "plain sweater"] },
+  { id: "son-newyear", who: "son", season: "newyear", name: "Красная шапка, узорный свитер и зелёный шарф", ref: null, noCap: true,
+    en: `${NEWYEAR_OUTFIT}; keep son's red knee-length shorts and green high-top sneakers from his identity reference`,
+    keep: "beanie, patterned sweater, green scarf, shorts, sneakers", neg: ["baseball cap", "yellow cap", "T-shirt", "trousers"] }
+
 ];
 
 /* ---------- позы ----------
@@ -201,6 +217,7 @@ const LOCATIONS = [
   { id: "meadow", name: "Лето · луг у озера", season: "summer", en: "bright summer meadow by a calm lake with soft green grass, a few daisies and wild strawberries, clear light blue sky" },
   { id: "autumn", name: "Осень", season: "autumn", en: `soft warm cream-to-peach gradient background (${PAL.cream} to ${PAL.peach}) with soft fluffy cream clouds, a few orange, yellow and red autumn leaves gently falling, sparse and not covering faces` },
   { id: "winter", name: "Зима", season: "winter", en: "cozy snowy winter scene with soft snowdrifts, gently falling snowflakes and a decorated fir tree with warm string lights in the soft-focus background" },
+  { id: "newyear", name: "Новый год", season: "newyear", en: "a cozy New Year celebration beside a decorated fir tree with warm golden fairy lights, red ornaments and evergreen branches, a few tangerines and wrapped gifts, gentle snowflakes in a softly blurred deep green background; keep faces and outfits clearly visible and unobstructed" },
   { id: "park", name: "Парк", en: "sunny city park with soft green lawns, rounded trees, a wooden bench and a winding path, softly blurred background" },
   { id: "picnic", name: "Пикник", en: "picnic on soft green grass with a red-and-white checkered blanket, a wicker basket and fruit, sunny day, softly blurred trees" },
   { id: "kitchen", name: "Кухня", en: "cozy bright home kitchen with light wooden cabinets, a round wooden table, a bowl of fruit and warm morning light from the window, softly blurred background" },
@@ -255,7 +272,7 @@ const ACTIONS = [
 ];
 
 /* ---------- негативы ---------- */
-const NEG_BASE = ["redesigned character", "different face", "different proportions", "changed outfit", "extra clothing", "missing clothing", "extra limbs", "mitten paws without fingers", "claws", "human hands", "long fur", "realistic animal", "photorealistic", "anime eyes", "big eyes", "black bead eyes without iris", "tail", "text", "watermark", "logo"];
+const NEG_BASE = ["lost character identity", "angular head", "box-shaped muzzle", "sharp muzzle corners", "flat rectangular muzzle", "different proportions", "incorrect described outfit", "extra clothing", "missing clothing", "extra limbs", "mitten paws without fingers", "claws", "human hands", "long fur", "realistic animal", "photorealistic", "anime eyes", "big eyes", "black bead eyes without iris", "tail", "text", "watermark", "logo"];
 const NEG_TEETH = ["visible teeth", "buck teeth", "open mouth"];
 const NEG_GROUP = ["swapped outfits", "extra characters", "same height", "perspective distortion", "wide-angle lens"];
 const NEG_TPOSE = ["three-quarter view", "dynamic pose", "background scenery"];
@@ -264,13 +281,13 @@ const LINEUP_REF = "Rectangle-46.jpg";
 
 const CHECKLIST = [
   "Силуэт и пропорции как у эталона",
-  "Морда-кирпичик, нос-сердечко, карие глаза с белым ободком и бровью",
+  "Округлая мордочка с мягкими щёчками, нос-сердечко, карие глаза с белым ободком и бровью",
   "Лапы с пальцами и тёмными подушечками",
   "Одежда не поменялась и не потерялась",
   "Зубы видны только при открытом рте",
   "Рост совпадает с семьёй: мама ≈ 88%, сын ≈ 67% от папы"
 ];
 
-return { PAL, BASE_LOOK, STYLE, CHARS, SEASONS, OUTFITS, CAM, POSES, EMOTIONS, DEFAULT_EMO, OPEN_DEFAULT_EMO,
+return { PAL, FACE_SHAPE, NEWYEAR_REF, BASE_LOOK, STYLE, CHARS, SEASONS, OUTFITS, CAM, POSES, EMOTIONS, DEFAULT_EMO, OPEN_DEFAULT_EMO,
   LOCATIONS, LIGHTS, FRAMES, CAMERAS, TEXTZONE, ACTIONS, NEG_BASE, NEG_TEETH, NEG_GROUP, NEG_TPOSE, LINEUP_REF, CHECKLIST };
 })();

@@ -194,7 +194,7 @@ test("complete family, every season, scene, references, custom prompt and persis
       ),
     );
   }
-  await expect(page.locator('[data-season="newyear"]')).toBeDisabled();
+  await expect(page.locator('[data-season="newyear"]')).toBeEnabled();
   await page.locator('[data-season="autumn"]').click();
   await page.locator("#chooseBtn").click();
   await expect(page.locator("#chooseBtn")).toBeDisabled();
@@ -752,3 +752,37 @@ for (const width of [1440, 390]) {
     }
   });
 }
+
+test("New Year uses the supplied outfit reference and survives reload", async ({
+  page,
+}, testInfo) => {
+  await openFamily(page);
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-season="newyear"]').click();
+  await expect(page.locator(".newyear-outfit-preview")).toBeVisible();
+  await capture(page, testInfo, "newyear-outfit");
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-scene="walk"]').click();
+  await page.locator("#chooseBtn").click();
+  const prompt = page.locator(".prompt-panel pre");
+  await expect(prompt).toContainText("softly rounded head");
+  await expect(prompt).toContainText("sage-green knitted scarf");
+  await expect(prompt).toContainText("New Year celebration");
+  await expect(prompt).toContainText("match Image 4");
+  await expect(prompt).toContainText("Image 5 = holiday outfit reference only");
+  await expect(page.locator("[data-dl]")).toHaveCount(5);
+  const download = page.waitForEvent("download");
+  await page.locator('[data-dl="4"]').click();
+  expect((await download).suggestedFilename()).toBe("5-newyear-outfit.png");
+  await page.evaluate(() => {
+    navigator.clipboard.writeText = async (text) => (window.__copied = text);
+  });
+  await page.locator("#copyBtn").click();
+  await expect
+    .poll(() => page.evaluate(() => window.__copied))
+    .toContain("white snowflakes");
+  await page.reload();
+  await page.locator('[data-step="3"]').click();
+  await expect(prompt).toContainText("sage-green knitted scarf");
+  await capture(page, testInfo, "newyear-prompt");
+});
