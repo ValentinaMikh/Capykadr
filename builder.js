@@ -234,7 +234,7 @@ function isWinterOutfit(outfit) {
 function outfitDescription(outfit) {
   const materials = isWinterOutfit(outfit)
     ? "For the knitted winter garments described above, show thick individual yarn loops, ribbed cuffs and the specified knitted patterns; keep trousers and other non-knit pieces in their specified fabrics."
-    : "Use smooth lightweight cotton fabric and fine flat woven textiles, subtle seams and natural fabric folds. Colors and stripes are printed or dyed into a smooth surface. Caps are sewn cotton canvas, berets and scarves are smooth woven fabric, raincoats are smooth waterproof coated fabric and boots are rubber. No knitted clothing, wool, chunky yarn, crochet, cable stitches or visible knitting loops anywhere on this character, including hat, cuffs and scarf. These material rules override any knitted texture visible in the attached identity or style references.";
+    : "Use smooth lightweight cotton fabric and fine flat woven textiles, subtle seams and natural fabric folds. Colors and stripes are printed or dyed into a smooth surface. For items explicitly listed in this outfit only: caps are sewn cotton canvas, berets and scarves are smooth woven fabric, raincoats are smooth waterproof coated fabric and boots are rubber. Do not add headwear, scarves, outerwear or shoes that are not listed. No knitted clothing, wool, chunky yarn, crochet, cable stitches or visible knitting loops anywhere on this character, including hat, cuffs and scarf. These material rules override any knitted texture visible in the attached identity or style references.";
   return `${outfit.en}. Materials for this character: ${materials}`;
 }
 function clothingNegatives(chars) {
