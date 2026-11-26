@@ -44,6 +44,9 @@
         object: "",
       },
     ],
+    outputMode: "scene",
+    bodyTurn: "front",
+    gaze: "camera",
     location: "white",
     light: "studio",
     frame: "1:1",
@@ -86,6 +89,10 @@
         if (!by(list, out[k])) out[k] = DEF[k];
       },
     );
+    if (!["scene", "neutral", "reference"].includes(out.outputMode))
+      out.outputMode = "scene";
+    if (!by(C.BODY_TURNS, out.bodyTurn)) out.bodyTurn = "front";
+    if (!by(C.GAZES, out.gaze) || out.bodyTurn === "back") out.gaze = "forward";
     return out;
   }
   let S = (() => {
@@ -365,6 +372,17 @@
         "",
       )}</div>${SEASON === "autumn" ? `<div class="season-decoration leaves">${art("dc068.png")}</div>` : SEASON === "winter" ? `<div class="season-decoration snow">${art("77587.png")}</div>` : ""}</div>`;
   }
+  function whiteControls() {
+    const white = S.outputMode !== "scene";
+    return `<div class="generation-controls"><label class="white-toggle"><input id="whiteBackground" type="checkbox" ${white ? "checked" : ""}><span class="switch-track" aria-hidden="true"></span><span>На белом фоне</span></label>
+      <span class="generation-hint">${white ? "Без сюжета и предметов" : "Выберите сюжет или включите режим эталона"}</span>
+      ${
+        white
+          ? `<div class="white-options"><label>Поза<select id="whitePose"><option value="neutral" ${S.outputMode === "neutral" ? "selected" : ""}>Нейтральная стойка</option><option value="reference" ${S.outputMode === "reference" ? "selected" : ""}>Как в исходнике / референсе</option></select></label>
+      ${S.outputMode === "neutral" ? `<label>Поворот тела<select id="whiteTurn">${C.BODY_TURNS.map((o) => `<option value="${o.id}" ${S.bodyTurn === o.id ? "selected" : ""}>${o.name}</option>`).join("")}</select></label><label>Взгляд<select id="whiteGaze" ${S.bodyTurn === "back" ? "disabled" : ""}>${C.GAZES.map((o) => `<option value="${o.id}" ${S.gaze === o.id ? "selected" : ""}>${o.name}</option>`).join("")}</select></label>` : `<p class="source-pose-hint">В генераторе приложите нужный исходник последним изображением. Его поза, поворот головы и взгляд будут сохранены, фон станет белым.</p>`}</div>`
+          : ""
+      }</div>`;
+  }
   let promptResizeObserver;
   function renderAll() {
     const el = $("steps");
@@ -376,10 +394,10 @@
     } else if (STEP === 1) {
       h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" aria-checked="${SEASON === s.id}">${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
     } else if (STEP === 2) {
-      h = `<div class="scene-grid">${SCENES.map((s) => `<button type="button" class="scene-choice" data-scene="${s.id}" aria-pressed="${SCENE === s.id}"><span class="scene-image">${art(s.id === "cafe" ? "914cd.png" : "268b2.png", "", s.name)}${SCENE === s.id ? `<span class="scene-check">${art("f4244.svg")}</span>` : ""}</span><span>${s.name}</span></button>`).join("")}${Array.from({ length: 4 }, () => '<div class="scene-empty" aria-hidden="true"></div>').join("")}</div>`;
+      h = `<div class="scene-workspace">${whiteControls()}${S.outputMode === "scene" ? `<div class="scene-grid">${SCENES.map((s) => `<button type="button" class="scene-choice" data-scene="${s.id}" aria-pressed="${SCENE === s.id}"><span class="scene-image">${art(s.id === "cafe" ? "914cd.png" : "268b2.png", "", s.name)}${SCENE === s.id ? `<span class="scene-check">${art("f4244.svg")}</span>` : ""}</span><span>${s.name}</span></button>`).join("")}${Array.from({ length: 4 }, () => '<div class="scene-empty" aria-hidden="true"></div>').join("")}</div>` : `<div class="white-mode-preview"><span aria-hidden="true">${S.outputMode === "neutral" ? "◇" : "↗"}</span><h2>${S.outputMode === "neutral" ? "Нейтральный эталон" : "Поза из исходника"}</h2><p>${S.outputMode === "neutral" ? "Выбранные капибары без действия, на чистом белом фоне" : "Та же поза и направление взгляда, новый белый фон"}</p></div>`}</div>`;
     } else {
       LAST = B.build(S);
-      h = `<div class="result-layout"><aside class="reference-panel"><h2>Прикрепите к промту</h2><div class="reference-grid" tabindex="0" role="group" aria-label="Референсы для скачивания">${LAST.refs.map((r, i) => `<button type="button" data-dl="${i}" aria-label="Скачать: ${esc(r.label)}" title="${esc(r.label)}"><img src="${esc(REFURL[r.key] || ART + (REF_ART[r.key] || REF_ART[`${r.key.split("-")[0]}-base`]))}" alt="${esc(r.label)}"><span><picture><source media="(max-width: 640px)" srcset="${ART}9cf08.svg"><source media="(max-width: 900px)" srcset="${ART}${i < 2 ? "70550.svg" : "d156f.svg"}">${art("37a62.svg")}</picture></span></button>`).join("")}${Array.from({ length: Math.max(0, 6 - LAST.refs.length) }, () => '<div class="reference-empty" aria-hidden="true"></div>').join("")}</div></aside><div class="prompt-panel"><pre tabindex="0" aria-label="Промт">${esc(LAST.prompt)}</pre><span class="prompt-scrollbar" aria-hidden="true"><i></i></span>${LAST.issues.length ? `<p role="alert" class="err">${LAST.issues.map(esc).join(". ")}</p>` : ""}</div>${examples()}</div>`;
+      h = `<div class="result-layout"><aside class="reference-panel"><h2>Прикрепите к промту</h2><div class="reference-grid" tabindex="0" role="group" aria-label="Референсы для скачивания">${LAST.refs.map((r, i) => (r.external ? `<div class="reference-external"><span aria-hidden="true">↗</span><b>Ваш исходник</b><small>Приложите изображением ${i + 1} в генераторе</small></div>` : `<button type="button" data-dl="${i}" aria-label="Скачать: ${esc(r.label)}" title="${esc(r.label)}"><img src="${esc(REFURL[r.key] || ART + (REF_ART[r.key] || REF_ART[`${r.key.split("-")[0]}-base`]))}" alt="${esc(r.label)}"><span><picture><source media="(max-width: 640px)" srcset="${ART}9cf08.svg"><source media="(max-width: 900px)" srcset="${ART}${i < 2 ? "70550.svg" : "d156f.svg"}">${art("37a62.svg")}</picture></span></button>`)).join("")}${Array.from({ length: Math.max(0, 6 - LAST.refs.length) }, () => '<div class="reference-empty" aria-hidden="true"></div>').join("")}</div></aside><div class="prompt-panel"><pre tabindex="0" aria-label="Промт">${esc(LAST.prompt)}</pre><span class="prompt-scrollbar" aria-hidden="true"><i></i></span>${LAST.issues.length ? `<p role="alert" class="err">${LAST.issues.map(esc).join(". ")}</p>` : ""}</div>${examples()}</div>`;
     }
     promptResizeObserver?.disconnect();
     el.innerHTML = h;
@@ -411,7 +429,7 @@
     $("builderActions").innerHTML =
       STEP === 3
         ? `<button type="button" class="choose primary" id="copyBtn" ${LAST.issues.length ? "disabled" : ""}>Копировать промт ${art("eb5dc.svg")}</button>`
-        : `${STEP === 2 ? '<button type="button" class="choose secondary" id="describeAction">Описать действие</button>' : ""}<button type="button" class="choose primary" id="chooseBtn" ${(STEP === 0 && !CAST.size) || (STEP === 1 && !SEASON) || (STEP === 2 && !SCENE) ? "disabled" : ""}>Выбрать</button>`;
+        : `${STEP === 2 && S.outputMode === "scene" ? '<button type="button" class="choose secondary" id="describeAction">Описать действие</button>' : ""}<button type="button" class="choose primary" id="chooseBtn" ${(STEP === 0 && !CAST.size) || (STEP === 1 && !SEASON) || (STEP === 2 && S.outputMode === "scene" && !SCENE) ? "disabled" : ""}>Выбрать</button>`;
     $("builderNav").innerHTML = stepNav();
   }
   function renderOut() {
@@ -481,6 +499,20 @@
       window.CapyMotion.select(
         $("steps").querySelector(`[data-cast="${d.cast}"]`),
       );
+  });
+  $("steps").addEventListener("change", (event) => {
+    const id = event.target.id;
+    if (id === "whiteBackground")
+      S.outputMode = event.target.checked ? "neutral" : "scene";
+    else if (id === "whitePose") S.outputMode = event.target.value;
+    else if (id === "whiteTurn") {
+      S.bodyTurn = event.target.value;
+      if (S.bodyTurn === "back") S.gaze = "forward";
+    } else if (id === "whiteGaze") S.gaze = event.target.value;
+    else return;
+    save();
+    renderAll();
+    $(id)?.focus({ preventScroll: true });
   });
   function describeAction() {
     const options = (list, value) =>

@@ -951,3 +951,66 @@ test("character shimmer stays behind artwork and only the newly selected charact
     animations: "disabled",
   });
 });
+
+for (const width of [1440, 420])
+  test(`white-background modes preserve choices and copy without scene overrides at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: 1080 });
+    await openFamily(page);
+    await page.locator("#chooseBtn").click();
+    await page.locator('[data-season="newyear"]').click();
+    await page.locator("#chooseBtn").click();
+    await page.getByLabel("На белом фоне", { exact: true }).check();
+    await expect(page.locator(".scene-grid")).toHaveCount(0);
+    await expect(page.locator("#describeAction")).toHaveCount(0);
+    await page.locator("#whiteTurn").selectOption("left");
+    await page.locator("#whiteGaze").selectOption("up");
+    await capture(page, testInfo, "white-controls-" + width);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(width);
+    await page.locator("#chooseBtn").click();
+    await expect(page.locator(".prompt-panel pre")).toContainText(
+      "full left-facing profile",
+    );
+    await expect(page.locator(".prompt-panel pre")).toContainText(
+      "eyes looking slightly upward",
+    );
+    await expect(page.locator(".prompt-panel pre")).toContainText(
+      "solid pure white (#FFFFFF)",
+    );
+    await page.locator('[data-step="2"]').click();
+    await page.locator("#whiteTurn").selectOption("back");
+    await expect(page.locator("#whiteGaze")).toBeDisabled();
+    await page.locator("#whitePose").selectOption("reference");
+    await expect(page.locator("#whiteTurn")).toHaveCount(0);
+    await expect(page.locator(".source-pose-hint")).toContainText(
+      "последним изображением",
+    );
+    await page.locator("#chooseBtn").click();
+    await expect(page.locator(".reference-external")).toContainText(
+      "Приложите изображением 6",
+    );
+    await expect(page.locator("[data-dl]")).toHaveCount(5);
+    await expect(page.locator(".prompt-panel pre")).toContainText(
+      "Pose source: Image 6",
+    );
+    await page.evaluate(() => {
+      navigator.clipboard.writeText = async (value) =>
+        (window.__copied = value);
+    });
+    await page.locator("#copyBtn").click();
+    await expect
+      .poll(() => page.evaluate(() => window.__copied))
+      .toContain("joint angles and paw positions");
+    await page.reload();
+    await page.locator('[data-step="3"]').click();
+    await expect(page.locator(".prompt-panel pre")).toContainText(
+      "Pose source: Image 6",
+    );
+    await capture(page, testInfo, "white-source-" + width);
+    await page.locator('[data-step="2"]').click();
+    await page.getByLabel("На белом фоне", { exact: true }).uncheck();
+    await expect(page.locator(".scene-grid")).toBeVisible();
+  });

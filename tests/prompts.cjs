@@ -86,3 +86,59 @@ for (const who of ["dad", "mom", "son"]) {
 console.log(
   "Prompt checks passed: oval muzzles, slimmer builds, all outfits, New Year clothing and reference numbering.",
 );
+
+for (const whos of [["dad"], ["dad", "mom", "son"]]) {
+  const dirty = {
+    ...state(whos, "newyear"),
+    location: "autumn",
+    action: "product",
+    product: "A bright blue cake",
+    extra: "A purple cafe",
+    chars: state(whos, "newyear").chars.map((c) => ({
+      ...c,
+      pose: "hold",
+      object: "",
+    })),
+  };
+  for (const outputMode of ["neutral", "reference"]) {
+    const result = B.build({
+      ...dirty,
+      outputMode,
+      bodyTurn: "left",
+      gaze: "up",
+    });
+    assert.equal(result.issues.length, 0);
+    assert.ok(result.prompt.includes("solid pure white (#FFFFFF)"));
+    assert.ok(!result.prompt.includes("A bright blue cake"));
+    assert.ok(!result.prompt.includes("A purple cafe"));
+    assert.ok(!result.prompt.includes("cream-to-peach"));
+    if (outputMode === "neutral") {
+      assert.ok(result.prompt.includes("full left-facing profile"));
+      assert.ok(result.prompt.includes("eyes looking slightly upward"));
+      assert.ok(result.prompt.includes("arms relaxed down beside the body"));
+      assert.ok(!result.refs.some((r) => r.external));
+    } else {
+      const source = result.refs.at(-1);
+      assert.equal(source.key, "pose-source");
+      assert.equal(source.external, true);
+      assert.ok(
+        result.prompt.includes(`Pose source: Image ${result.refs.length}`),
+      );
+      assert.ok(result.prompt.includes("joint angles and paw positions"));
+      assert.ok(!result.prompt.includes("full left-facing profile"));
+      assert.ok(!result.prompt.includes("eyes looking slightly upward"));
+      assert.ok(!result.prompt.includes("Expression: a calm"));
+    }
+  }
+}
+const back = B.build({
+  ...state(["dad"]),
+  outputMode: "neutral",
+  bodyTurn: "back",
+  gaze: "camera",
+});
+assert.ok(back.prompt.includes("eyes and face are not visible"));
+assert.ok(!back.prompt.includes("Gaze: eyes looking toward the camera"));
+console.log(
+  "White-background checks passed: neutral direction, source pose, scene isolation and reference numbering.",
+);
