@@ -64,7 +64,9 @@ for (const whos of [
     assert.ok(result.prompt.includes("latest style image takes priority"));
     assert.ok(result.prompt.includes("Do not copy its waving pose"));
     assert.ok(result.refs.some((r) => r.file === "capybara-style-v2.png"));
-    assert.ok(result.prompt.includes("thick individual yarn loops"));
+    if (season === "newyear")
+      assert.ok(result.prompt.includes("thick individual yarn loops"));
+    else assert.ok(result.prompt.includes("smooth lightweight cotton fabric"));
     assert.ok(
       result.refs.some((r) =>
         ["style-reference", "newyear-outfit"].includes(r.key),
@@ -192,4 +194,40 @@ for (const who of ["dad", "mom", "son"]) {
 }
 console.log(
   "Head checks passed: original proportions and restrained, forward-projecting muzzles for all characters and output modes.",
+);
+
+for (const season of ["base", "spring", "summer", "autumn"]) {
+  for (const who of ["dad", "mom", "son"]) {
+    for (const outputMode of ["scene", "neutral", "reference"]) {
+      const result = B.build({ ...state([who], season), outputMode });
+      assert.ok(result.prompt.includes("smooth lightweight cotton fabric"));
+      assert.ok(
+        result.prompt.includes("No knitted clothing, wool, chunky yarn"),
+      );
+      const positive = result.prompt.split("Avoid:")[0];
+      assert.ok(!positive.includes("red knitted sweater"));
+      assert.ok(!positive.includes("yellow knitted scarf"));
+      assert.ok(!positive.includes("red knitted beret"));
+      assert.ok(!positive.includes("on knitted clothing show"));
+    }
+    assert.ok(
+      B.buildReference(`${who}-${season}`).prompt.includes(
+        "No knitted clothing, wool, chunky yarn",
+      ),
+    );
+  }
+}
+for (const season of ["winter", "newyear"]) {
+  const result = B.build(state(["dad", "mom", "son"], season));
+  assert.ok(result.prompt.includes("thick individual yarn loops"));
+  assert.ok(!result.prompt.split("Avoid:")[1].includes("knitted clothing"));
+}
+const mixed = state(["dad", "son"], "summer");
+mixed.chars[0].outfit = "dad-winter";
+const combined = B.build(mixed);
+assert.ok(combined.prompt.includes("thick individual yarn loops"));
+assert.ok(combined.prompt.includes("No knitted clothing, wool, chunky yarn"));
+assert.ok(!combined.prompt.split("Avoid:")[1].includes("knitted clothing"));
+console.log(
+  "Seasonal fabric checks passed: smooth spring/summer/autumn clothes, winter knitting and mixed outfits.",
 );
