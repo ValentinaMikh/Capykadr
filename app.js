@@ -412,7 +412,7 @@
     return `<div class="family-preview ${esc(SEASON)}"><div class="family-art" data-count="${selected.length}">${selected
       .map(
         (w, i) =>
-          `<div class="family-${w} ${w === "son" ? (VERSION === 2 ? "new-son-reference" : "base-son") : ""}"${selected.length < 3 ? ` style="--family-center: ${selected.length === 1 ? 50 : i === 0 ? 35 : 65}%"` : ""}>${art((SEASON_ART[SEASON] || BASE_ART)[w], "", C.CHARS[w].name)}</div>`,
+          `<div class="family-${w} ${w === "son" ? (VERSION === 2 ? "new-son-reference" : !SEASON || SEASON === "spring" ? "base-son" : "") : ""}"${selected.length < 3 ? ` style="--family-center: ${selected.length === 1 ? 50 : i === 0 ? 35 : 65}%"` : ""}>${art((SEASON_ART[SEASON] || BASE_ART)[w], "", C.CHARS[w].name)}</div>`,
       )
       .join(
         "",
@@ -650,7 +650,7 @@
   }
   function stateMeta(st) {
     return {
-      constructorVersion: VERSION,
+      constructorVersion: st.constructorVersion || VERSION,
       who: st.chars.map((c) => c.who),
       outfits: st.chars.map((c) => c.outfit),
       poses: st.chars.map((c) => c.pose),
@@ -662,15 +662,17 @@
   async function copyPrompt() {
     if (!LAST || LAST.issues.length) return;
     if (!(await refreshVersion())) return;
-    if (!(await copyText(LAST.prompt))) {
+    const result = LAST,
+      st = clone(S);
+    st.constructorVersion = VERSION;
+    if (!(await copyText(result.prompt))) {
       toast("Не получилось скопировать. Выделите текст промта вручную.");
       return;
     }
     toast("Промт скопирован");
     window.CapyMotion.success($("copyBtn"));
-    const st = clone(S);
     sb.from("prompt_history")
-      .insert({ state: st, prompt: LAST.prompt })
+      .insert({ state: st, prompt: result.prompt })
       .then(({ error }) => {
         if (error) toast("Промт скопирован, но историю сохранить не удалось");
       });
@@ -1504,13 +1506,11 @@
         el.disabled = true;
       });
       try {
-        const result = await sb
-          .from("ref_images")
-          .upsert({
-            id: V.settingId,
-            image_path: V.manifests[next],
-            updated_at: new Date().toISOString(),
-          });
+        const result = await sb.from("ref_images").upsert({
+          id: V.settingId,
+          image_path: V.manifests[next],
+          updated_at: new Date().toISOString(),
+        });
         if (result.error) throw result.error;
         setVersion(next);
         await loadRefs();

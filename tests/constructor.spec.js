@@ -1305,3 +1305,71 @@ test("failed team-version save keeps the active version and an ordinary member c
     await memberContext.close();
   }
 });
+
+test("copied history records the version and a stale team version cannot be copied", async ({
+  page,
+}) => {
+  const registry = { rows: [] };
+  await connectVersionRegistry(page, registry);
+  await page.goto("/");
+  await page.locator('[data-cast="son"]').click();
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-season="summer"]').click();
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-scene="walk"]').click();
+  await page.locator("#chooseBtn").click();
+  await page.evaluate(() => {
+    navigator.clipboard.writeText = async (text) => (window.__copied = text);
+  });
+  await page.locator("#copyBtn").click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          window.__inserts.filter((r) => r.name === "prompt_history").length,
+      ),
+    )
+    .toBe(1);
+  expect(
+    await page.evaluate(
+      () =>
+        window.__inserts.find((r) => r.name === "prompt_history").row.state
+          .constructorVersion,
+    ),
+  ).toBe(2);
+  registry.rows = [
+    { id: "constructor-version", image_path: "versions/v1.json" },
+  ];
+  await page.locator("#copyBtn").click();
+  await expect(page.locator("body")).toHaveAttribute(
+    "data-constructor-version",
+    "1",
+  );
+  expect(
+    await page.evaluate(
+      () => window.__inserts.filter((r) => r.name === "prompt_history").length,
+    ),
+  ).toBe(1);
+  await expect(page.locator("#toast")).toContainText("Проверьте настройки");
+  await page.locator('[data-cast="son"]').click();
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-season="summer"]').click();
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-scene="walk"]').click();
+  await page.locator("#chooseBtn").click();
+  await page.locator("#copyBtn").click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          window.__inserts.filter((r) => r.name === "prompt_history").length,
+      ),
+    )
+    .toBe(2);
+  const saved = await page.evaluate(
+    () =>
+      window.__inserts.filter((r) => r.name === "prompt_history").at(-1).row,
+  );
+  expect(saved.state.constructorVersion).toBe(1);
+  expect(saved.prompt).toContain("boxy muzzle");
+});
