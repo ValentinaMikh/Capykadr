@@ -55,6 +55,13 @@
     button.classList.add("ui-success");
     setTimeout(() => button.classList.remove("ui-success"), 500);
   }
+  function select(button) {
+    if (reduced.matches || !button?.isConnected) return;
+    const image = button.querySelector(".portrait img");
+    if (!image) return;
+    image.classList.add("ui-character-selected");
+    setTimeout(() => image.classList.remove("ui-character-selected"), 350);
+  }
   function like(button) {
     if (reduced.matches || !button?.isConnected) return;
     success(button);
@@ -83,5 +90,5 @@
     },
     { passive: true },
   );
-  window.CapyMotion = { reveal, like, success };
+  window.CapyMotion = { reveal, like, success, select };
 })();

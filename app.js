@@ -477,6 +477,10 @@
       return;
     } else return;
     renderAll();
+    if (d.cast && CAST.has(d.cast))
+      window.CapyMotion.select(
+        $("steps").querySelector(`[data-cast="${d.cast}"]`),
+      );
   });
   function describeAction() {
     const options = (list, value) =>

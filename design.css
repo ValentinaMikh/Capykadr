@@ -2163,49 +2163,29 @@ button:focus-visible,
 .menu:not([hidden]) {
   animation: capy-reveal 200ms ease-out both;
 }
-.character-choice[aria-pressed="true"] .portrait img {
-  animation: capy-wiggle 380ms ease-out;
-  transform-origin: 50% 75%;
-}
-@keyframes capy-wiggle {
-  0%,
-  100% {
-    rotate: 0deg;
-  }
-  30% {
-    rotate: -2deg;
-  }
-  65% {
-    rotate: 1.5deg;
-  }
-}
-.character-image,
-.scene-image,
-.gallery-card,
-.example-button {
-  position: relative;
+/* The shimmer is behind the character artwork, never over a photo. */
+.character-image {
   isolation: isolate;
 }
-.example-button {
-  overflow: hidden;
+.character-image .portrait {
+  z-index: 1;
 }
-.character-image::after,
-.scene-image::after,
-.gallery-card::after,
-.example-button::after {
+.character-image .pick-mark {
+  z-index: 2;
+}
+.character-image::before {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 0;
   border-radius: inherit;
   pointer-events: none;
   background: linear-gradient(
     115deg,
-    transparent 15%,
-    #cad95a55 35%,
-    #fff6bd55 50%,
-    #ff9bb755 65%,
-    transparent 85%
+    #cad95a55,
+    #fff6bd55,
+    #ff9bb755,
+    #cad95a55
   );
   background-size: 250% 100%;
   background-position: 100% 50%;
@@ -2213,20 +2193,38 @@ button:focus-visible,
   transition: opacity 200ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
-  .character-choice:hover .character-image::after,
-  .scene-choice:hover .scene-image::after,
-  .gallery-card:hover::after,
-  .example-button:hover::after {
+  .character-choice:hover .character-image::before {
     opacity: 1;
     animation: capy-sheen 1800ms ease-in-out infinite alternate;
   }
-  .character-choice:hover .character-image,
-  .scene-choice:hover .scene-image,
-  .gallery-card:hover,
-  .example-button:hover {
-    box-shadow:
-      0 0 0 2px #cad95a55,
-      0 8px 24px #0003;
+}
+.character-choice:not(:disabled):active {
+  scale: 1;
+}
+.ui-character-selected {
+  animation: capy-character-grow 320ms ease-out;
+  transform-origin: 50% 75%;
+}
+@keyframes capy-character-grow {
+  0%,
+  100% {
+    scale: 1;
+  }
+  45% {
+    scale: 1.025;
+  }
+}
+.scene-choice:focus-visible {
+  outline: none;
+}
+.scene-choice:focus-visible .scene-image {
+  outline: 2px solid #cad95a;
+  outline-offset: 4px;
+  border-radius: 48px;
+}
+@media (max-width: 900px) {
+  .scene-choice:focus-visible .scene-image {
+    border-radius: 28px;
   }
 }
 @keyframes capy-sheen {
@@ -2330,19 +2328,6 @@ button:focus-visible,
   button:not(:disabled):active,
   .nav a:active {
     scale: 1;
-  }
-}
-.scene-image::after {
-  border-radius: 48px;
-}
-@media (max-width: 900px) {
-  .scene-image::after {
-    border-radius: 28px;
-  }
-}
-@media (max-width: 640px) {
-  .result-layout .example-button {
-    border-radius: 36px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
