@@ -10,14 +10,15 @@ async function mockAccount(page, signedIn = true, gallery = {}) {
       };
       const query = (data = []) => {
         const q = {
-          then: async (resolve) => {
-            if (gallery.delay)
-              await new Promise((done) => setTimeout(done, gallery.delay));
-            return resolve({
-              data: typeof data === "function" ? await data() : data,
-              error: null,
-            });
-          },
+          then: (resolve, reject) =>
+            (async () => {
+              if (gallery.delay)
+                await new Promise((done) => setTimeout(done, gallery.delay));
+              return {
+                data: typeof data === "function" ? await data() : data,
+                error: null,
+              };
+            })().then(resolve, reject),
         };
         const proxy = new Proxy(q, {
           get: (target, key) => (key === "then" ? target.then : () => proxy),
