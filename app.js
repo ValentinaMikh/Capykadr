@@ -522,7 +522,10 @@
   function renderAll() {
     const el = $("steps");
     const stepChanged = el.dataset.motionStep !== String(STEP);
+    const sceneScroll = el.querySelector(".seasonal-scenes")?.scrollTop || 0;
+    const previousSceneSeason = el.dataset.sceneSeason;
     el.dataset.motionStep = String(STEP);
+    el.dataset.sceneSeason = SEASON;
     let h = "";
     if (STEP === 0) {
       h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${VERSION === 2 ? "new-family-reference" + (w === "son" ? " new-son-reference" : "") : w === "son" ? "base-son" : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
@@ -547,6 +550,9 @@
     }
     promptResizeObserver?.disconnect();
     el.innerHTML = h;
+    const sceneGrid = el.querySelector(".seasonal-scenes");
+    if (sceneGrid && !stepChanged && previousSceneSeason === SEASON)
+      sceneGrid.scrollTop = sceneScroll;
     if (stepChanged) window.CapyMotion.reveal(el);
     const promptText = el.querySelector(".prompt-panel pre");
     if (promptText) {
