@@ -1139,8 +1139,11 @@ test("admin switches the whole team, preserves drafts and restores current son i
   browser,
 }, testInfo) => {
   const registry = { rows: [] };
-  const colleagueContext = await browser.newContext();
+  const colleagueContext = await browser.newContext({
+    baseURL: "http://127.0.0.1:4173",
+  });
   const colleague = await colleagueContext.newPage();
+  await colleague.clock.install();
   try {
     await connectVersionRegistry(page, registry);
     await connectVersionRegistry(colleague, registry, false);
@@ -1192,7 +1195,6 @@ test("admin switches the whole team, preserves drafts and restores current son i
       "aria-pressed",
       "true",
     );
-    await colleague.clock.install();
     await colleague.clock.fastForward(31000);
     await expect(colleague.locator("body")).toHaveAttribute(
       "data-constructor-version",
@@ -1289,7 +1291,9 @@ test("failed team-version save keeps the active version and an ordinary member c
   );
   await expect(page.locator('[data-version="1"]')).toBeEnabled();
   expect(registry.rows).toEqual([]);
-  const memberContext = await browser.newContext();
+  const memberContext = await browser.newContext({
+    baseURL: "http://127.0.0.1:4173",
+  });
   try {
     const member = await memberContext.newPage();
     await connectVersionRegistry(member, registry, false);
