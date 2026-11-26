@@ -10,13 +10,14 @@ async function mockAccount(page, signedIn = true, gallery = {}) {
       };
       const query = (data = []) => {
         const q = {
-          then: (resolve) =>
-            (gallery.delay
-              ? new Promise((done) =>
-                  setTimeout(() => done({ data, error: null }), gallery.delay),
-                )
-              : Promise.resolve({ data, error: null })
-            ).then(resolve),
+          then: async (resolve) => {
+            if (gallery.delay)
+              await new Promise((done) => setTimeout(done, gallery.delay));
+            return resolve({
+              data: typeof data === "function" ? await data() : data,
+              error: null,
+            });
+          },
         };
         const proxy = new Proxy(q, {
           get: (target, key) => (key === "then" ? target.then : () => proxy),
@@ -47,9 +48,18 @@ async function mockAccount(page, signedIn = true, gallery = {}) {
                       : name === "publication_likes"
                         ? gallery.likes || []
                         : name === "ref_images"
-                          ? gallery.refImages || []
+                          ? async () =>
+                              window.__getRefRows
+                                ? await window.__getRefRows()
+                                : gallery.refImages || []
                           : [],
                 ),
+              upsert: async (row) => {
+                window.__inserts.push({ name, row });
+                if (name === "ref_images" && window.__setRefRow)
+                  return window.__setRefRow(row);
+                return { error: null };
+              },
               delete: () => query(),
               update: () => query(),
               insert: (row) => {
@@ -61,7 +71,7 @@ async function mockAccount(page, signedIn = true, gallery = {}) {
                 return query();
               },
             }),
-            rpc: async () => ({ data: true }),
+            rpc: async () => ({ data: gallery.admin !== false }),
             storage: {
               from: () => ({
                 createSignedUrls: async (paths) => ({
@@ -1112,4 +1122,182 @@ test("later administrator uploads can replace the bundled son reference", async 
     "src",
     "assets/figma/268b2.png",
   );
+});
+
+async function connectVersionRegistry(page, registry, admin = true) {
+  await page.exposeFunction("__getRefRows", () => registry.rows);
+  await page.exposeFunction("__setRefRow", (row) => {
+    if (registry.fail || !admin) return { error: { message: "Denied" } };
+    registry.rows = registry.rows.filter((r) => r.id !== row.id).concat(row);
+    return { error: null };
+  });
+  await mockAccount(page, true, { admin });
+}
+
+test("admin switches the whole team, preserves drafts and restores current son images", async ({
+  page,
+  browser,
+}, testInfo) => {
+  const registry = { rows: [] };
+  const colleagueContext = await browser.newContext();
+  const colleague = await colleagueContext.newPage();
+  try {
+    await connectVersionRegistry(page, registry);
+    await connectVersionRegistry(colleague, registry, false);
+    await page.goto("/#admin");
+    await colleague.goto("/");
+    await expect(page.locator('[data-version="2"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(
+      colleague.locator('[data-cast="son"] img').first(),
+    ).toHaveAttribute("src", /son-base-v3/);
+    await colleague.locator('[data-cast="son"]').click();
+    await colleague.locator("#chooseBtn").click();
+    await colleague.locator('[data-season="autumn"]').click();
+    await page.locator('[data-version="1"]').click();
+    await expect(page.locator('[data-version="1"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(registry.rows[0].image_path).toBe("versions/v1.json");
+    await capture(page, testInfo, "admin-version-1");
+    await colleague.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(colleague.locator("body")).toHaveAttribute(
+      "data-constructor-version",
+      "1",
+    );
+    await expect(
+      colleague.locator('[data-cast="son"] img').first(),
+    ).toHaveAttribute("src", /9870a.png/);
+    await colleague.locator('[data-cast="dad"]').click();
+    await colleague.locator("#chooseBtn").click();
+    await colleague.locator('[data-season="winter"]').click();
+    await expect(colleague.locator('[data-season="newyear"]')).toBeDisabled();
+    await colleague.locator("#chooseBtn").click();
+    await expect(
+      colleague.getByLabel("На белом фоне", { exact: true }),
+    ).toHaveCount(0);
+    await colleague.locator('[data-scene="walk"]').click();
+    await colleague.locator("#chooseBtn").click();
+    await expect(colleague.locator(".prompt-panel pre")).toContainText(
+      "boxy muzzle",
+    );
+    await expect(colleague.locator(".prompt-panel pre")).not.toContainText(
+      "latest style image",
+    );
+    await page.locator('[data-version="2"]').click();
+    await expect(page.locator('[data-version="2"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await colleague.clock.install();
+    await colleague.clock.fastForward(31000);
+    await expect(colleague.locator("body")).toHaveAttribute(
+      "data-constructor-version",
+      "2",
+    );
+    await expect(colleague.locator('[data-cast="son"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(colleague.locator('[data-cast="dad"]')).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    await colleague.locator("#chooseBtn").click();
+    await expect(colleague.locator('[data-season="autumn"]')).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await expect(colleague.locator(".family-son img")).toHaveAttribute(
+      "src",
+      /son-autumn-v3/,
+    );
+    await page.reload();
+    await expect(page.locator('[data-version="2"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  } finally {
+    await colleagueContext.close();
+  }
+});
+
+for (const width of [1440, 390])
+  test(`original version uses frozen seasonal images and ignores current uploads at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: 1080 });
+    const registry = {
+      rows: [
+        { id: "constructor-version", image_path: "versions/v1.json" },
+        {
+          id: "son-base",
+          image_path: "assets/son/son-base-v3.png",
+          updated_at: "2027-01-01",
+        },
+      ],
+    };
+    await connectVersionRegistry(page, registry);
+    await page.goto("/");
+    await page.locator('[data-cast="son"]').click();
+    await page.locator("#chooseBtn").click();
+    for (const [season, image] of [
+      ["spring", "9870a"],
+      ["summer", "4d195"],
+      ["autumn", "2b890"],
+      ["winter", "4a990"],
+    ]) {
+      await page.locator(`[data-season="${season}"]`).click();
+      await expect(page.locator(".family-son img")).toHaveAttribute(
+        "src",
+        `assets/figma/${image}.png`,
+      );
+      await assetsLoad(page);
+    }
+    await capture(page, testInfo, `original-winter-${width}`);
+    await page.locator("#chooseBtn").click();
+    await page.locator('[data-scene="walk"]').click();
+    await page.locator("#chooseBtn").click();
+    await expect(page.locator(".prompt-panel pre")).toContainText(
+      "boxy muzzle",
+    );
+    await expect(page.locator(".reference-panel img[src*='son-']")).toHaveCount(
+      0,
+    );
+    await page.goto("/#admin");
+    await expect(page.locator("[data-refkey]")).toHaveCount(0);
+    await capture(page, testInfo, `admin-original-${width}`);
+  });
+
+test("failed team-version save keeps the active version and an ordinary member cannot switch", async ({
+  page,
+  browser,
+}) => {
+  const registry = { rows: [], fail: true };
+  await connectVersionRegistry(page, registry);
+  await page.goto("/#admin");
+  await page.locator('[data-version="1"]').click();
+  await expect(page.locator("#versionError")).toContainText(
+    "Не удалось сменить версию",
+  );
+  await expect(page.locator('[data-version="2"]')).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(page.locator('[data-version="1"]')).toBeEnabled();
+  expect(registry.rows).toEqual([]);
+  const memberContext = await browser.newContext();
+  try {
+    const member = await memberContext.newPage();
+    await connectVersionRegistry(member, registry, false);
+    await member.goto("/#admin");
+    await expect(member.locator("#v-builder")).toBeVisible();
+    await expect(member.locator("[data-version]")).toHaveCount(0);
+    await expect(member.locator("#navAdmin")).toBeHidden();
+  } finally {
+    await memberContext.close();
+  }
 });

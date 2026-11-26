@@ -243,3 +243,57 @@ for (const season of ["base", "summer", "autumn", "winter", "newyear"]) {
 console.log(
   "Son reference checks passed: season-specific reference IDs and bundled files.",
 );
+
+// Freeze version 1 byte-for-byte against the pre-style-change source (apart from exports).
+const crypto = require("node:crypto");
+for (const [file, sha, restore] of [
+  [
+    "legacy/data-v1.js",
+    "3dd2005b7fde2d675b55976f3251643902d76434",
+    (s) => s.replace("window.CAPY_V1 =", "window.CAPY ="),
+  ],
+  [
+    "legacy/builder-v1.js",
+    "1cf03b9f8eba84e9d02da2f3a5e48f2024971428",
+    (s) =>
+      s
+        .replace("window.CAPY_V1;", "window.CAPY;")
+        .replace("window.CapyBuilderV1 =", "window.CapyBuilder ="),
+  ],
+]) {
+  const source = Buffer.from(restore(fs.readFileSync(file, "utf8")));
+  assert.equal(
+    crypto
+      .createHash("sha1")
+      .update(`blob ${source.length}\0`)
+      .update(source)
+      .digest("hex"),
+    sha,
+    file,
+  );
+  vm.runInContext(fs.readFileSync(file, "utf8"), context);
+}
+vm.runInContext(fs.readFileSync("versions.js", "utf8"), context);
+const V = context.window.CapyVersions;
+assert.equal(V.decode([]), 2);
+assert.equal(
+  V.decode([{ id: V.settingId, image_path: "versions/v1.json" }]),
+  1,
+);
+assert.throws(() =>
+  V.decode([{ id: V.settingId, image_path: "versions/unknown.json" }]),
+);
+assert.equal(V.preset(1).builder, context.window.CapyBuilderV1);
+assert.equal(V.preset(2).builder, B);
+for (const season of ["base", "summer", "autumn", "winter"])
+  for (const whos of [["dad"], ["mom"], ["son"], ["dad", "mom", "son"]]) {
+    const original = V.preset(1).builder.build(state(whos, season));
+    assert.equal(original.issues.length, 0);
+    assert.ok(original.prompt.includes("boxy muzzle"));
+    assert.ok(!original.prompt.includes("latest style image"));
+    assert.ok(!original.refs.some((r) => r.key === "style-reference"));
+    assert.equal(original.refs.length, whos.length + (whos.length > 1 ? 1 : 0));
+  }
+console.log(
+  "Version checks passed: original source frozen, all original seasons, isolated builders and default version 2.",
+);
