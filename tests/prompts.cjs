@@ -30,7 +30,11 @@ for (const outfit of C.OUTFITS) {
   assert.ok(result.prompt.includes(C.FACE_SHAPE), outfit.id);
   assert.ok(result.prompt.includes(C.BODY_SHAPE), outfit.id);
   assert.ok(!result.prompt.includes("boxy muzzle"));
-  assert.ok(result.prompt.includes("Visual style authority: Image 2"));
+  assert.ok(
+    result.prompt.includes(
+      "Visual style authority for rendering and materials: Image 2",
+    ),
+  );
   assert.equal(result.refs.length, 2);
 }
 for (const whos of [
@@ -44,9 +48,17 @@ for (const whos of [
     const result = B.build(state(whos, season));
     assert.equal(result.issues.length, 0);
     assert.ok(result.prompt.includes(C.FACE_SHAPE));
-    assert.ok(result.prompt.includes("soft vertical oval"));
     assert.ok(
-      result.prompt.includes("fully rounded lower corners and a curved chin"),
+      result.prompt.includes("clearly forward-projecting capybara muzzle"),
+    );
+    assert.ok(result.prompt.includes("restrained cheek volume"));
+    assert.ok(
+      result.prompt.includes(
+        "son has a smaller youthful snout that still projects forward",
+      ),
+    );
+    assert.ok(
+      result.prompt.includes("surface rendering only, never for head size"),
     );
     assert.ok(result.prompt.includes(C.BODY_SHAPE));
     assert.ok(result.prompt.includes("latest style image takes priority"));
@@ -58,7 +70,9 @@ for (const whos of [
         ["style-reference", "newyear-outfit"].includes(r.key),
       ),
     );
-    assert.ok(result.prompt.includes("compact toy-like proportions"));
+    assert.ok(
+      result.prompt.includes("original identity-reference head-to-body ratio"),
+    );
     assert.ok(!result.prompt.includes("wide chunky almost rectangular torso"));
     assert.ok(!result.prompt.includes("preserve body proportions"));
     assert.ok(!result.prompt.includes("Keep exactly the same face"));
@@ -154,4 +168,28 @@ assert.ok(back.prompt.includes("eyes and face are not visible"));
 assert.ok(!back.prompt.includes("Gaze: eyes looking toward the camera"));
 console.log(
   "White-background checks passed: neutral direction, source pose, scene isolation and reference numbering.",
+);
+
+for (const who of ["dad", "mom", "son"]) {
+  for (const outputMode of ["scene", "neutral", "reference"]) {
+    const result = B.build({
+      ...state([who]),
+      outputMode,
+      bodyTurn: "front",
+      gaze: "camera",
+    });
+    assert.ok(
+      result.prompt.includes("original identity-reference head-to-body ratio"),
+    );
+    assert.ok(!result.prompt.includes("a short, broad projecting"));
+    assert.ok(!result.prompt.includes("Match its compact plush 3D silhouette"));
+    assert.ok(
+      result.prompt.includes(
+        "original identity references and the explicit Face shape instructions above take priority",
+      ),
+    );
+  }
+}
+console.log(
+  "Head checks passed: original proportions and restrained, forward-projecting muzzles for all characters and output modes.",
 );
