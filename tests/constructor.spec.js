@@ -45,7 +45,11 @@ async function mockAccount(page, signedIn = true, gallery = {}) {
                       ? { name: "Дарья" }
                       : gallery.profiles || []
                     : name === "publications"
-                      ? gallery.publications || []
+                      ? async () => {
+                          if (gallery.galleryError)
+                            throw new Error("Gallery unavailable");
+                          return gallery.publications || [];
+                        }
                       : name === "publication_likes"
                         ? gallery.likes || []
                         : name === "ref_images"
@@ -93,8 +97,8 @@ async function mockAccount(page, signedIn = true, gallery = {}) {
     { signedIn, gallery },
   );
 }
-async function openFamily(page) {
-  await mockAccount(page);
+async function openFamily(page, gallery = {}) {
+  await mockAccount(page, true, gallery);
   await page.goto("/");
   await expect(page.locator("#app")).toBeVisible();
   await expect(page.locator("#chooseBtn")).toBeDisabled();
@@ -355,7 +359,39 @@ for (const viewport of [
 test("example photo opens an accessible preview with copy, favourite and apply", async ({
   page,
 }, testInfo) => {
-  await openFamily(page);
+  const state = {
+    ...galleryFixture().publications[0].state,
+    chars: [
+      {
+        who: "son",
+        outfit: "son-autumn",
+        pose: "hold",
+        emo: "auto",
+        x: 50,
+        y: 86,
+        object: "a wicker basket filled with apples",
+      },
+    ],
+    location: "autumn",
+    constructorVersion: 2,
+  };
+  await mockAccount(page, true, {
+    publications: [
+      {
+        id: "3e23f.png",
+        user_id: "author",
+        title: "Урожай яблок",
+        image_path: "assets/figma/3e23f.png",
+        state,
+        prompt: "a wicker basket filled with apples",
+        hidden: false,
+        created_at: "2026-11-26T12:00:00Z",
+      },
+    ],
+    profiles: [{ id: "author", name: "Valentina" }],
+  });
+  await page.goto("/");
+  await page.locator('[data-cast="son"]').click();
   await page.locator("#chooseBtn").click();
   await page.locator('[data-season="autumn"]').click();
   const example = page.locator('[data-example="3e23f.png"]');
@@ -371,7 +407,7 @@ test("example photo opens an accessible preview with copy, favourite and apply",
     "assets/figma/3e23f.png",
   );
   await expect(dialog.locator(".photo-prompt")).toContainText(
-    "a wicker basket filled with red and green apples",
+    "wicker basket filled with apples",
   );
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({
@@ -1562,4 +1598,162 @@ test("winter son is suggested only after winter clothing is selected", async ({
   await expect(page.locator(".prompt-panel pre")).toContainText(
     "Pose source: Image 5",
   );
+});
+
+function matchingGalleryFixture() {
+  const state = {
+    ...galleryFixture().publications[0].state,
+    constructorVersion: 2,
+    designScene: "walk",
+    location: "autumn",
+    chars: ["dad", "mom", "son"].map((who, i) => ({
+      who,
+      outfit: who + "-autumn",
+      pose: "stand",
+      emo: "auto",
+      x: 26 + i * 24,
+      y: 86,
+      object: "",
+    })),
+  };
+  const paths = ["3e23f", "78299", "57b68", "245ef", "b44e6", "9870a", "1a8e0"];
+  const items = paths.map((path, i) => ({
+    id: "match-" + i,
+    user_id: "author",
+    title: "Пример " + i,
+    image_path: "assets/figma/" + path + ".png",
+    created_at: "2026-11-26T12:00:00Z",
+    hidden: false,
+    state,
+    prompt: "Saved gallery prompt " + i,
+  }));
+  items[0] = {
+    ...items[0],
+    id: "best",
+    title: "Точный пример из галереи",
+    state: { ...state, designScene: "cafe", location: "cafe" },
+  };
+  items.push(
+    { ...items[0], id: "hidden", hidden: true },
+    {
+      ...items[0],
+      id: "wrong-version",
+      state: { ...items[0].state, constructorVersion: 1 },
+    },
+    { ...items[0], id: "duplicate" },
+    {
+      ...items[1],
+      id: "wrong-characters",
+      state: { ...state, chars: [state.chars[0]] },
+    },
+    { ...items[0], id: "broken", image_path: "assets/not-found.png" },
+    {
+      ...items[1],
+      id: "winter",
+      title: "Зимний пример",
+      image_path: "assets/v2/family-lineup.png",
+      state: {
+        ...state,
+        designSeason: "winter",
+        location: "winter",
+        chars: state.chars.map((c) => ({ ...c, outfit: c.who + "-winter" })),
+      },
+    },
+  );
+  return {
+    publications: items,
+    profiles: [{ id: "author", name: "Автор галереи" }],
+  };
+}
+
+test("examples use relevant, unique gallery photos and open their actual publication", async ({
+  page,
+}, testInfo) => {
+  await openFamily(page, matchingGalleryFixture());
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-season="autumn"]').click();
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-scene="cafe"]').click();
+  await page.locator("#chooseBtn").click();
+  await expect(page.locator(".example-button")).toHaveCount(6);
+  await expect(page.locator('[data-example="broken"]')).toHaveCount(0);
+  await expect(page.locator(".example-button").first()).toHaveAttribute(
+    "data-example",
+    "best",
+  );
+  const ids = await page
+    .locator(".example-button")
+    .evaluateAll((nodes) => nodes.map((n) => n.dataset.example));
+  expect(new Set(ids).size).toBe(6);
+  for (const id of [
+    "hidden",
+    "wrong-version",
+    "wrong-characters",
+    "winter",
+    "duplicate",
+    "broken",
+  ])
+    expect(ids).not.toContain(id);
+  const images = await page
+    .locator(".example-button img")
+    .evaluateAll((nodes) => nodes.map((n) => n.src));
+  expect(new Set(images).size).toBe(6);
+  await page.locator('[data-step="3"]').click();
+  expect(
+    await page
+      .locator(".example-button")
+      .evaluateAll((nodes) => nodes.map((n) => n.dataset.example)),
+  ).toEqual(ids);
+  await capture(page, testInfo, "matched-gallery-examples");
+  await page.locator('[data-example="best"]').click();
+  await expect(page.locator(".photo-title")).toHaveText(
+    "Точный пример из галереи",
+  );
+  await expect(page.locator(".photo-meta")).toContainText("Автор галереи");
+  await expect(page.locator(".photo-prompt")).toHaveText(
+    "Saved gallery prompt 0",
+  );
+  await page.evaluate(() => {
+    navigator.clipboard.writeText = async (text) => (window.__copied = text);
+  });
+  await page.locator('[data-photo-action="copy"]').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__copied))
+    .toBe("Saved gallery prompt 0");
+  await page.locator(".photo-like").click();
+  expect(
+    await page.evaluate(() =>
+      window.__inserts.some(
+        (r) => r.name === "publication_likes" && r.row.pub_id === "best",
+      ),
+    ),
+  ).toBe(true);
+  await page.keyboard.press("Escape");
+  await page.locator('[data-step="1"]').click();
+  await page.locator('[data-season="winter"]').click();
+  await expect(page.locator(".example-button")).toHaveCount(1);
+  await expect(page.locator(".example-button")).toHaveAttribute(
+    "data-example",
+    "winter",
+  );
+  await page.locator('[data-season="spring"]').click();
+  await expect(page.locator(".example-button")).toHaveCount(0);
+  await expect(page.locator(".examples-note")).toContainText(
+    "пока нет примеров под эти настройки",
+  );
+});
+
+test("unavailable gallery leaves the constructor usable and explains missing examples", async ({
+  page,
+}) => {
+  await openFamily(page, { galleryError: true });
+  await page.locator("#chooseBtn").click();
+  await page.locator('[data-season="autumn"]').click();
+  await expect(page.locator(".example-button")).toHaveCount(0);
+  await expect(page.locator(".examples-note")).toContainText(
+    "Не удалось загрузить примеры",
+  );
+  await page.locator('[data-step="3"]').click();
+  await expect(page.locator(".prompt-panel pre")).toContainText("capybara");
+  await expect(page.locator("#copyBtn")).toBeEnabled();
 });

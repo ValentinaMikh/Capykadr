@@ -153,7 +153,11 @@
           ? [...document.querySelectorAll(".gallery-card")].find(
               (card) => card.dataset.pid === prev.dataset.pid,
             )
-          : null;
+          : prev?.dataset.example
+            ? [...document.querySelectorAll(".example-button")].find(
+                (button) => button.dataset.example === prev.dataset.example,
+              )
+            : null;
       focusTarget?.focus();
     };
     const onKey = (e) => {
@@ -398,12 +402,59 @@
     return `<nav class="step-nav" aria-label="Шаги конструктора">${["Персонажи", "Сезон", "Сюжет", "Промт"].map((name, i) => `<button type="button" data-step="${i}" aria-label="${name}" ${i === STEP ? 'aria-current="step"' : ""} ${i > 0 && !CAST.size ? "disabled" : ""}>${art(icons[i][i === STEP ? 0 : 1])}</button>`).join("")}</nav>`;
   }
   function examples() {
-    const images =
-      STEP !== 3 && SEASON === "autumn"
-        ? ["3e23f.png", "78299.png", "57b68.png"]
-        : [];
-    return `<aside class="examples"><h2>Примеры генераций</h2><div class="example-grid" tabindex="0" role="group" aria-label="Примеры генераций">${Array.from({ length: 6 }, (_, i) => (images[i] ? `<button type="button" class="example-button" data-example="${images[i]}" aria-label="Открыть пример: ${EXAMPLE_PHOTOS[images[i]].title}">${art(images[i], "example-image", EXAMPLE_PHOTOS[images[i]].title)}</button>` : art("268b2.png", "example-image"))).join("")}</div></aside>`;
+    const target = {
+      ...S,
+      constructorVersion: VERSION,
+      designSeason: SEASON,
+      designScene: SCENE,
+      chars: S.chars.filter((c) => CAST.has(c.who)),
+    };
+    const signature = JSON.stringify([GALLERY_REVISION, target]);
+    if (EXAMPLES.signature !== signature) {
+      EXAMPLES.signature = signature;
+      EXAMPLES.items = window.CapyExamples.select(
+        GAL.items,
+        target,
+        EXAMPLES.usage,
+        EXAMPLES.broken,
+      );
+      EXAMPLES.items.forEach((p) =>
+        EXAMPLES.usage.set(
+          p.image_path,
+          (EXAMPLES.usage.get(p.image_path) || 0) + 1,
+        ),
+      );
+    }
+    const photos = EXAMPLES.items;
+    const note = !GALLERY_READY
+      ? "Загружаем примеры…"
+      : EXAMPLES.error
+        ? "Не удалось загрузить примеры из галереи"
+        : !photos.length
+          ? "В галерее пока нет примеров под эти настройки"
+          : "";
+    return `<aside class="examples"><h2>Примеры генераций</h2><div class="example-grid" tabindex="0" role="group" aria-label="Примеры генераций" aria-busy="${!GALLERY_READY}">${Array.from({ length: 6 }, (_, i) => (photos[i] ? `<button type="button" class="example-button" data-example="${esc(photos[i].id)}" aria-label="Открыть пример: ${esc(photos[i].title || "Без названия")}"><img src="${esc(photos[i].url)}" class="example-image" alt="${esc(photos[i].title || "Пример из галереи")}"></button>` : art("268b2.png", "example-image"))).join("")}</div>${note ? `<p class="hint examples-note" role="status">${note}</p>` : ""}</aside>`;
   }
+  function refreshExamples() {
+    const panel = $("v-builder").querySelector(".examples");
+    if (panel) panel.outerHTML = examples();
+  }
+  $("v-builder").addEventListener(
+    "error",
+    (event) => {
+      const button = event.target.closest?.("[data-example]");
+      if (!button) return;
+      const publication = GAL.items.find(
+        (p) => p.id === button.dataset.example,
+      );
+      if (publication) {
+        EXAMPLES.broken.add(publication.image_path);
+        EXAMPLES.signature = null;
+        refreshExamples();
+      }
+    },
+    true,
+  );
   function familyPreview() {
     if (SEASON === "newyear")
       return `<div class="family-preview newyear"><img class="newyear-outfit-preview" src="${ART}${CAST.size === 1 && CAST.has("son") ? C.SON_REFERENCES["son-newyear"] : C.NEWYEAR_REF.file}" alt="Новогодний образ: красная шапка, свитер с белым зимним узором и зелёный шарф"><p class="newyear-outfit-caption">Одежда для выбранных персонажей</p></div>`;
@@ -486,7 +537,7 @@
     if (!t || t.disabled) return;
     const d = t.dataset;
     if (d.example) {
-      viewPub(examplePublication(d.example));
+      viewPub(GAL.items.find((p) => p.id === d.example && !p.hidden));
       return;
     }
     if (d.cast) {
@@ -941,6 +992,7 @@
           logEvent("publish", stateMeta(row.state));
           close();
           toast("Опубликовано в галерее");
+          loadExamples();
         });
       },
     );
@@ -959,61 +1011,76 @@
     page: 1,
   };
   const GALLERY_PAGE_SIZE = 15;
-  const EXAMPLE_LIKES_KEY = "capykadr-example-likes-v1";
-  const EXAMPLE_PHOTOS = {
-    "3e23f.png": {
-      who: "son",
-      title: "Урожай яблок",
-      object: "a wicker basket filled with red and green apples",
-    },
-    "78299.png": {
-      who: "dad",
-      title: "Осенний букет",
-      object: "a colorful bouquet of fallen autumn leaves",
-    },
-    "57b68.png": {
-      who: "mom",
-      title: "Осенний букет",
-      object: "a colorful bouquet of fallen autumn leaves",
-    },
+  let GALLERY_REQUEST = null,
+    GALLERY_READY = false,
+    GALLERY_REVISION = 0,
+    GALLERY_GENERATION = 0;
+  const EXAMPLES = {
+    signature: null,
+    items: [],
+    usage: new Map(),
+    broken: new Set(),
+    error: false,
   };
-  function examplePublication(file) {
-    const example = EXAMPLE_PHOTOS[file];
-    if (!example) return null;
-    const state = normalize({
-      ...clone(DEF),
-      chars: [
-        {
-          who: example.who,
-          outfit: `${example.who}-autumn`,
-          pose: "hold",
-          emo: "auto",
-          x: 50,
-          y: 86,
-          object: example.object,
-        },
-      ],
-      location: "autumn",
-      light: "golden",
-      designSeason: "autumn",
-      designScene: "custom",
-    });
-    return {
-      id: file,
-      example: true,
-      title: example.title,
-      url: ART + file,
-      state,
-      prompt: B.build(state).prompt,
-    };
-  }
-  function exampleLiked(id) {
+  async function loadExamples() {
+    const generation = GALLERY_GENERATION;
     try {
-      return JSON.parse(
-        localStorage.getItem(EXAMPLE_LIKES_KEY) || "[]",
-      ).includes(id);
+      await fetchGalleryData();
     } catch {
-      return false;
+      if (generation !== GALLERY_GENERATION) return;
+      GALLERY_READY = true;
+      EXAMPLES.error = true;
+      refreshExamples();
+    }
+  }
+  async function fetchGalleryData() {
+    if (GALLERY_REQUEST) return GALLERY_REQUEST;
+    const accountId = ME?.id,
+      generation = GALLERY_GENERATION;
+    const request = (async () => {
+      const [pubs, likes, profiles] = await Promise.all([
+        sb
+          .from("publications")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(300),
+        sb.from("publication_likes").select("pub_id,user_id"),
+        sb.from("profiles").select("id,name,email"),
+      ]);
+      if (pubs.error) throw pubs.error;
+      const items = pubs.data || [];
+      if (items.length) {
+        const { data: urls, error } = await sb.storage
+          .from("works")
+          .createSignedUrls(
+            items.map((p) => p.image_path),
+            60 * 60 * 6,
+          );
+        if (error) throw error;
+        (urls || []).forEach((url, i) => {
+          items[i].url = url?.signedUrl;
+        });
+      }
+      if (ME?.id !== accountId || generation !== GALLERY_GENERATION) return;
+      GAL.items = items;
+      GAL.likes = likes.data || [];
+      GAL.names = Object.fromEntries(
+        (profiles.data || []).map((p) => [
+          p.id,
+          p.name || (p.email || "").split("@")[0],
+        ]),
+      );
+      GALLERY_READY = true;
+      GALLERY_REVISION++;
+      EXAMPLES.error = false;
+      EXAMPLES.broken.clear();
+      refreshExamples();
+    })();
+    GALLERY_REQUEST = request;
+    try {
+      return await request;
+    } finally {
+      if (GALLERY_REQUEST === request) GALLERY_REQUEST = null;
     }
   }
   async function loadGallery() {
@@ -1029,40 +1096,13 @@
           `<button type="button" class="chip" data-gw="${id}" aria-pressed="${GAL.who === id}">${name}</button>`,
       )
       .join("");
-    const [pubs, likes, profiles] = await Promise.all([
-      sb
-        .from("publications")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(300),
-      sb.from("publication_likes").select("pub_id,user_id"),
-      sb.from("profiles").select("id,name,email"),
-    ]);
-    if (pubs.error) {
+    try {
+      await fetchGalleryData();
+    } catch (error) {
       el.setAttribute("aria-busy", "false");
-      el.innerHTML = `<div class="empty" role="alert">Не удалось загрузить: ${esc(pubs.error.message)}</div>`;
+      el.innerHTML = `<div class="empty" role="alert">Не удалось загрузить: ${esc(error.message)}</div>`;
       $("galleryPagination").innerHTML = "";
       return;
-    }
-    GAL.items = pubs.data || [];
-    GAL.likes = likes.data || [];
-    GAL.names = Object.fromEntries(
-      (profiles.data || []).map((p) => [
-        p.id,
-        p.name || (p.email || "").split("@")[0],
-      ]),
-    );
-    if (GAL.items.length) {
-      const { data: urls, error } = await sb.storage
-        .from("works")
-        .createSignedUrls(
-          GAL.items.map((p) => p.image_path),
-          60 * 60 * 6,
-        );
-      (urls || []).forEach((url, index) => {
-        GAL.items[index].url = url && url.signedUrl;
-      });
-      if (error) toast("Некоторые изображения не удалось загрузить");
     }
     drawGallery();
   }
@@ -1161,21 +1201,6 @@
     moderatePublication(publication);
   });
   async function togglePhotoLike(publication) {
-    if (publication.example) {
-      try {
-        const likes = new Set(
-          JSON.parse(localStorage.getItem(EXAMPLE_LIKES_KEY) || "[]"),
-        );
-        likes.has(publication.id)
-          ? likes.delete(publication.id)
-          : likes.add(publication.id);
-        localStorage.setItem(EXAMPLE_LIKES_KEY, JSON.stringify([...likes]));
-        return true;
-      } catch {
-        toast("Не удалось сохранить отметку");
-        return false;
-      }
-    }
     const liked = iLike(publication.id);
     const result = liked
       ? await sb
@@ -1198,12 +1223,8 @@
   }
   function viewPub(publication) {
     if (!publication) return;
-    const liked = publication.example
-      ? exampleLiked(publication.id)
-      : iLike(publication.id);
-    const author = publication.example
-      ? "CapyKadr · Пример генерации"
-      : `${GAL.names[publication.user_id] || "Участник команды"} · ${fmtDate(publication.created_at)}`;
+    const liked = iLike(publication.id);
+    const author = `${GAL.names[publication.user_id] || "Участник команды"} · ${fmtDate(publication.created_at)}`;
     modal(
       `<div class="photo-image-frame"><img class="photo-full" src="${esc(publication.url || ART + "268b2.png")}" alt="${esc(publication.title || "Кадр")}"><button type="button" class="photo-like" data-photo-action="like" aria-label="Полезно" aria-pressed="${liked}">${art(liked ? "34c49.svg" : "6cefc.svg")}</button></div>
       <div class="photo-info"><p class="photo-meta">${esc(author)}</p><h2 class="photo-title" id="photo-modal-title" title="${esc(publication.title || "Без названия")}">${esc(publication.title || "Без названия")}</h2>
@@ -1237,14 +1258,7 @@
             const wasLiked = button.getAttribute("aria-pressed") === "true";
             button.disabled = true;
             await togglePhotoLike(publication);
-            button.setAttribute(
-              "aria-pressed",
-              String(
-                publication.example
-                  ? exampleLiked(publication.id)
-                  : iLike(publication.id),
-              ),
-            );
+            button.setAttribute("aria-pressed", String(iLike(publication.id)));
             button.querySelector("img").src =
               ART +
               (button.getAttribute("aria-pressed") === "true"
@@ -1276,6 +1290,8 @@
               return;
             }
             publication.hidden = !publication.hidden;
+            GALLERY_REVISION++;
+            refreshExamples();
             close();
             drawGallery();
           } else if (!button.dataset.sure) {
@@ -1292,6 +1308,8 @@
             }
             await sb.storage.from("works").remove([publication.image_path]);
             GAL.items = GAL.items.filter((p) => p.id !== publication.id);
+            GALLERY_REVISION++;
+            refreshExamples();
             close();
             drawGallery();
           }
@@ -1701,6 +1719,16 @@
   function showGate() {
     ME = null;
     ADMIN = false;
+    GAL.items = [];
+    GAL.likes = [];
+    GAL.names = {};
+    GALLERY_READY = false;
+    GALLERY_GENERATION++;
+    GALLERY_REQUEST = null;
+    EXAMPLES.signature = null;
+    EXAMPLES.items = [];
+    EXAMPLES.usage.clear();
+    EXAMPLES.broken.clear();
     $("gate").hidden = false;
     $("gateLoading").hidden = true;
     $("gateForm").hidden = false;
@@ -1745,6 +1773,7 @@
     $("app").hidden = false;
     $("fab").hidden = true;
     route();
+    loadExamples();
   }
 
   /* =====================================================================
@@ -1766,7 +1795,10 @@
       .forEach((a) =>
         a.setAttribute("aria-current", a.dataset.v === v ? "page" : "false"),
       );
-    if (v === "builder") renderAll();
+    if (v === "builder") {
+      renderAll();
+      if (GALLERY_READY) loadExamples();
+    }
     if (v === "gallery") loadGallery();
     if (v === "history") loadHistory();
     if (v === "admin") loadAdmin();
