@@ -231,7 +231,7 @@ test("complete family, every season, scene, references, custom prompt and persis
   await capture(page, testInfo, "prompt");
   const download = page.waitForEvent("download");
   await page.locator('[data-dl="0"]').click();
-  expect((await download).suggestedFilename()).toBe("1-dad-base.png");
+  expect((await download).suggestedFilename()).toBe("1-dad-autumn.png");
   await page.locator('[data-step="1"]').click();
   await page.locator('[data-step="3"]').click();
   await expect(page.locator(".prompt-panel pre")).toContainText(
@@ -791,7 +791,7 @@ test("New Year uses the supplied outfit reference and survives reload", async ({
   await expect(page.locator(".newyear-outfit-preview")).toBeVisible();
   await expect(page.locator(".newyear-outfit-preview")).toHaveAttribute(
     "src",
-    "assets/figma/capybara-style-v2.png",
+    "assets/figma/../v2/son-winter.png",
   );
   await capture(page, testInfo, "newyear-outfit");
   await page.locator("#chooseBtn").click();
@@ -1071,7 +1071,9 @@ for (const width of [1440, 390])
       if (season !== "newyear") {
         await expect(page.locator(".family-son img")).toHaveAttribute(
           "src",
-          new RegExp("son-" + file + "-v3.png$"),
+          new RegExp(
+            file === "base" ? "son-base-v3.png$" : "v2/son-" + file + ".png$",
+          ),
         );
         await expect(page.locator(".family-son img")).toHaveCSS(
           "object-fit",
@@ -1080,13 +1082,15 @@ for (const width of [1440, 390])
       } else
         await expect(page.locator(".newyear-outfit-preview")).toHaveAttribute(
           "src",
-          /son-winter-v3.png$/,
+          /v2\/son-winter.png$/,
         );
       await capture(page, testInfo, `son-${season}-${width}`);
       await page.locator('[data-step="3"]').click();
       await expect(page.locator('[data-dl="0"] > img')).toHaveAttribute(
         "src",
-        new RegExp("son-" + file + "-v3.png$"),
+        new RegExp(
+          file === "base" ? "son-base-v3.png$" : "v2/son-" + file + ".png$",
+        ),
       );
       const downloaded = page.waitForEvent("download");
       await page.locator('[data-dl="0"]').click();
@@ -1098,7 +1102,9 @@ for (const width of [1440, 390])
       const expected = require("node:fs").readFileSync(
         require("node:path").join(
           __dirname,
-          "../assets/son/son-" + file + "-v3.png",
+          file === "base"
+            ? "../assets/son/son-base-v3.png"
+            : "../assets/v2/son-" + file + ".png",
         ),
       );
       expect(hash(Buffer.concat(chunks))).toBe(hash(expected));
@@ -1219,7 +1225,7 @@ test("admin switches the whole team, preserves drafts and restores current son i
     );
     await expect(colleague.locator(".family-son img")).toHaveAttribute(
       "src",
-      /son-autumn-v3/,
+      /v2\/son-autumn/,
     );
     await page.reload();
     await expect(page.locator('[data-version="2"]')).toHaveAttribute(
@@ -1400,3 +1406,108 @@ test("unavailable team settings do not silently expose a different version", asy
     "1",
   );
 });
+
+for (const width of [390, 1440])
+  test(`version 2 family photos display and download the supplied files at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: 1080 });
+    const cases = {
+      dad: [
+        ["spring", "dad-spring"],
+        ["summer", "dad-summer"],
+        ["autumn", "dad-autumn"],
+        ["winter", "dad-winter"],
+      ],
+      mom: [
+        ["spring", "mom-spring"],
+        ["summer", "mom-summer"],
+        ["autumn", "mom-autumn"],
+        ["winter", "mom-winter"],
+      ],
+      son: [
+        ["summer", "son-summer"],
+        ["autumn", "son-autumn"],
+        ["winter", "son-winter"],
+      ],
+    };
+    await mockAccount(page, true, {
+      refImages: Object.values(cases)
+        .flat()
+        .map(([season, file]) => ({
+          id: file.replace("-spring", "-base"),
+          image_path: "assets/figma/268b2.png",
+          updated_at: "2026-11-25T00:00:00Z",
+        })),
+    });
+    await page.goto("/");
+    for (const [who, seasons] of Object.entries(cases)) {
+      await page.evaluate(() => localStorage.clear());
+      await page.reload();
+      await page.locator(`[data-cast="${who}"]`).click();
+      await page.locator("#chooseBtn").click();
+      for (const [season, file] of seasons) {
+        await page.locator('[data-step="1"]').click();
+        await page.locator(`[data-season="${season}"]`).click();
+        await expect(page.locator(`.family-${who} img`)).toHaveAttribute(
+          "src",
+          `assets/figma/../v2/${file}.png`,
+        );
+        await expect(page.locator(`.family-${who} img`)).toHaveCSS(
+          "object-fit",
+          "contain",
+        );
+        await page.locator('[data-step="3"]').click();
+        await expect(page.locator('[data-dl="0"] > img')).toHaveAttribute(
+          "src",
+          `assets/figma/../v2/${file}.png`,
+        );
+        const downloaded = page.waitForEvent("download");
+        await page.locator('[data-dl="0"]').click();
+        const stream = await (await downloaded).createReadStream();
+        const chunks = [];
+        for await (const chunk of stream) chunks.push(chunk);
+        expect(
+          Buffer.concat(chunks).equals(
+            require("node:fs").readFileSync(
+              require("node:path").join(
+                __dirname,
+                "../assets/v2/" + file + ".png",
+              ),
+            ),
+          ),
+        ).toBe(true);
+      }
+    }
+    await page.goto("/#admin");
+    await expect(
+      page
+        .locator('[data-refkey="dad-autumn"]')
+        .locator("..")
+        .locator("..")
+        .locator("img"),
+    ).toHaveAttribute("src", "assets/figma/../v2/dad-autumn.png");
+    await capture(page, testInfo, `admin-new-photos-${width}`);
+    await page.evaluate(() => localStorage.clear());
+    await page.goto("/");
+    await page.reload();
+    for (const who of ["dad", "mom", "son"])
+      await page.locator(`[data-cast="${who}"]`).click();
+    await page.locator("#chooseBtn").click();
+    for (const season of ["spring", "summer", "autumn", "winter"]) {
+      await page.locator(`[data-season="${season}"]`).click();
+      const sizes = await page
+        .locator(".family-art > div")
+        .evaluateAll((nodes) =>
+          Object.fromEntries(
+            nodes.map((n) => [
+              n.className.split(" ")[0],
+              n.getBoundingClientRect().height,
+            ]),
+          ),
+        );
+      expect(sizes["family-mom"] / sizes["family-dad"]).toBeCloseTo(0.88, 1);
+      expect(sizes["family-son"] / sizes["family-dad"]).toBeCloseTo(0.67, 1);
+      await capture(page, testInfo, `family-new-${season}-${width}`);
+    }
+  });
