@@ -259,7 +259,7 @@
   };
   let REF_ART = {
     ...C.BUNDLED_REFERENCES,
-    lineup: "e1d62.png",
+    lineup: C.LINEUP_REF,
     "newyear-outfit": C.NEWYEAR_REF.file,
     "style-reference": C.STYLE_REF.file,
   };

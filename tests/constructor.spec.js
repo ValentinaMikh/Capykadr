@@ -227,7 +227,7 @@ test("complete family, every season, scene, references, custom prompt and persis
   await expect(page.locator(".prompt-panel pre")).toContainText(
     "cozy cafe interior",
   );
-  await expect(page.locator("[data-dl]")).toHaveCount(5);
+  await expect(page.locator("[data-dl]")).toHaveCount(4);
   await capture(page, testInfo, "prompt");
   const download = page.waitForEvent("download");
   await page.locator('[data-dl="0"]').click();
@@ -1511,3 +1511,55 @@ for (const width of [390, 1440])
       await capture(page, testInfo, `family-new-${season}-${width}`);
     }
   });
+
+test("winter son is suggested only after winter clothing is selected", async ({
+  page,
+}, testInfo) => {
+  await openFamily(page);
+  await page.locator("#chooseBtn").click();
+  for (const season of ["spring", "summer", "autumn", "winter", "autumn"]) {
+    await page.locator('[data-step="1"]').click();
+    await page.locator(`[data-season="${season}"]`).click();
+    await page.locator('[data-step="3"]').click();
+    await expect(page.locator("[data-dl]")).toHaveCount(
+      season === "winter" ? 5 : 4,
+    );
+    await expect(
+      page.locator('.reference-panel img[src*="v2/son-winter.png"]'),
+    ).toHaveCount(season === "winter" ? 2 : 0);
+    await expect(page.locator(".prompt-panel pre")).not.toContainText(
+      "Image 0",
+    );
+  }
+  await expect(page.locator('[data-dl="3"] > img')).toHaveAttribute(
+    "src",
+    "assets/figma/../v2/family-lineup.png",
+  );
+  const downloaded = page.waitForEvent("download");
+  await page.locator('[data-dl="3"]').click();
+  const stream = await (await downloaded).createReadStream();
+  const chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  expect(
+    Buffer.concat(chunks).equals(
+      require("node:fs").readFileSync(
+        require("node:path").join(__dirname, "../assets/v2/family-lineup.png"),
+      ),
+    ),
+  ).toBe(true);
+  await capture(page, testInfo, "non-winter-attachments");
+  await page.locator('[data-step="2"]').click();
+  await page.getByLabel("На белом фоне", { exact: true }).check();
+  await page.locator("#whitePose").selectOption("reference");
+  await page.locator("#chooseBtn").click();
+  await expect(page.locator("[data-dl]")).toHaveCount(4);
+  await expect(
+    page.locator('.reference-panel img[src*="v2/son-winter.png"]'),
+  ).toHaveCount(0);
+  await expect(page.locator(".reference-external")).toContainText(
+    "Приложите изображением 5",
+  );
+  await expect(page.locator(".prompt-panel pre")).toContainText(
+    "Pose source: Image 5",
+  );
+});
