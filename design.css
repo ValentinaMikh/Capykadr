@@ -2633,3 +2633,23 @@ body[data-constructor-version="2"] .reference-grid > button > img,
 body[data-constructor-version="2"] .refcell img {
   object-fit: contain;
 }
+
+/* Seasonal catalogs contain 10–12 cards and remain usable above the fixed dock. */
+.scene-workspace .scene-grid.seasonal-scenes {
+  height: auto;
+  max-height: min(570px, max(240px, calc(100dvh - 330px)));
+  grid-template-rows: none;
+  grid-auto-rows: auto;
+  align-content: start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-color: #cddd52 #2c2f31;
+  scrollbar-width: thin;
+  padding: 4px 8px 12px 4px;
+}
+.seasonal-scenes .scene-choice > span:last-child {
+  height: auto;
+  min-height: 2.4em;
+  line-height: 1.1;
+}
