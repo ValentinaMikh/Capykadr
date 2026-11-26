@@ -368,8 +368,8 @@
   let promptResizeObserver;
   function renderAll() {
     const el = $("steps");
-    const stepChanged = el.dataset.step !== String(STEP);
-    el.dataset.step = String(STEP);
+    const stepChanged = el.dataset.motionStep !== String(STEP);
+    el.dataset.motionStep = String(STEP);
     let h = "";
     if (STEP === 0) {
       h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${w === "son" ? "base-son" : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
