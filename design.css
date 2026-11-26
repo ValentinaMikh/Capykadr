@@ -2529,3 +2529,17 @@ button:focus-visible,
     flex: 0 0 122.044px;
   }
 }
+
+/* New son references contain a complete silhouette in square transparent PNGs. */
+.portrait.new-son-reference {
+  inset: 0;
+}
+.new-son-reference img {
+  object-fit: contain;
+}
+.family-son.new-son-reference {
+  left: 51.62%;
+  top: 48.16%;
+  width: 54.4%;
+  height: 54.15%;
+}

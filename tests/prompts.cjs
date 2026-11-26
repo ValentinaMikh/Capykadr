@@ -231,3 +231,15 @@ assert.ok(!combined.prompt.split("Avoid:")[1].includes("knitted clothing"));
 console.log(
   "Seasonal fabric checks passed: smooth spring/summer/autumn clothes, winter knitting and mixed outfits.",
 );
+
+for (const season of ["base", "summer", "autumn", "winter", "newyear"]) {
+  const ref = B.build(state(["son"], season)).refs[0];
+  assert.equal(ref.key, "son-" + season);
+  assert.equal(ref.file, C.SON_REFERENCES[ref.key]);
+  assert.ok(
+    fs.statSync(require("node:path").join("assets/figma", ref.file)).size > 0,
+  );
+}
+console.log(
+  "Son reference checks passed: season-specific reference IDs and bundled files.",
+);

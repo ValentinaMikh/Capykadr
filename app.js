@@ -225,17 +225,33 @@
 
   /* Four design steps share the existing prompt model and Supabase persistence. */
   const ART = "assets/figma/";
-  const BASE_ART = { dad: "245ef.png", mom: "b44e6.png", son: "9870a.png" };
+  const BASE_ART = {
+    dad: "245ef.png",
+    mom: "b44e6.png",
+    son: C.SON_REFERENCES["son-base"],
+  };
   const SEASON_ART = {
     spring: BASE_ART,
-    summer: { dad: "e1ec0.png", mom: "a7e7b.png", son: "4d195.png" },
-    autumn: { dad: "1a8e0.png", mom: "b8570.png", son: "2b890.png" },
-    winter: { dad: "cc67a.png", mom: "e77ec.png", son: "4a990.png" },
+    summer: {
+      dad: "e1ec0.png",
+      mom: "a7e7b.png",
+      son: C.SON_REFERENCES["son-summer"],
+    },
+    autumn: {
+      dad: "1a8e0.png",
+      mom: "b8570.png",
+      son: C.SON_REFERENCES["son-autumn"],
+    },
+    winter: {
+      dad: "cc67a.png",
+      mom: "e77ec.png",
+      son: C.SON_REFERENCES["son-winter"],
+    },
   };
   const REF_ART = {
     "dad-base": "07558.png",
     "mom-base": "2cbd4.png",
-    "son-base": "74fc8.png",
+    ...C.SON_REFERENCES,
     lineup: "e1d62.png",
     "newyear-outfit": "capybara-style-v2.png",
     "style-reference": "capybara-style-v2.png",
@@ -362,12 +378,12 @@
   }
   function familyPreview() {
     if (SEASON === "newyear")
-      return `<div class="family-preview newyear"><img class="newyear-outfit-preview" src="${ART}capybara-style-v2.png" alt="Новогодний образ: красная шапка, свитер с белым зимним узором и зелёный шарф"><p class="newyear-outfit-caption">Одежда для выбранных персонажей</p></div>`;
+      return `<div class="family-preview newyear"><img class="newyear-outfit-preview" src="${ART}${CAST.size === 1 && CAST.has("son") ? C.SON_REFERENCES["son-newyear"] : "capybara-style-v2.png"}" alt="Новогодний образ: красная шапка, свитер с белым зимним узором и зелёный шарф"><p class="newyear-outfit-caption">Одежда для выбранных персонажей</p></div>`;
     const selected = WHO.filter((w) => CAST.has(w));
     return `<div class="family-preview ${esc(SEASON)}"><div class="family-art" data-count="${selected.length}">${selected
       .map(
         (w, i) =>
-          `<div class="family-${w} ${w === "son" && (!SEASON || SEASON === "spring") ? "base-son" : ""}"${selected.length < 3 ? ` style="--family-center: ${selected.length === 1 ? 50 : i === 0 ? 35 : 65}%"` : ""}>${art((SEASON_ART[SEASON] || BASE_ART)[w], "", C.CHARS[w].name)}</div>`,
+          `<div class="family-${w} ${w === "son" ? "new-son-reference" : ""}"${selected.length < 3 ? ` style="--family-center: ${selected.length === 1 ? 50 : i === 0 ? 35 : 65}%"` : ""}>${art((SEASON_ART[SEASON] || BASE_ART)[w], "", C.CHARS[w].name)}</div>`,
       )
       .join(
         "",
@@ -391,7 +407,7 @@
     el.dataset.motionStep = String(STEP);
     let h = "";
     if (STEP === 0) {
-      h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${w === "son" ? "base-son" : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
+      h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${w === "son" ? "new-son-reference" : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
     } else if (STEP === 1) {
       h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" aria-checked="${SEASON === s.id}">${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
     } else if (STEP === 2) {
@@ -636,7 +652,15 @@
     REFS = {};
     REFURL = {};
     const { data } = await sb.from("ref_images").select("*");
-    (data || []).forEach((r) => (REFS[r.id] = r.image_path));
+    (data || []).forEach((r) => {
+      // The new bundled son references supersede older uploads. Later admin replacements still win.
+      if (
+        C.SON_REFERENCES[r.id] &&
+        !(Date.parse(r.updated_at) > Date.parse(C.SON_REFERENCE_REVISION))
+      )
+        return;
+      REFS[r.id] = r.image_path;
+    });
     const keys = Object.keys(REFS);
     if (keys.length) {
       const { data: urls } = await sb.storage.from("refs").createSignedUrls(
@@ -644,9 +668,12 @@
         60 * 60 * 12,
       );
       (urls || []).forEach((u, i) => {
-        if (u && u.signedUrl) REFURL[keys[i]] = u.signedUrl;
+        if (u?.signedUrl) REFURL[keys[i]] = u.signedUrl;
       });
     }
+    Object.entries(C.SON_REFERENCES).forEach(([key, file]) => {
+      if (!REFURL[key]) REFURL[key] = ART + file;
+    });
   }
 
   /* =====================================================================
@@ -1299,7 +1326,7 @@
           label,
           file,
         ]) => `<div class="refcell"><div class="im">${REFURL[k] ? `<img src="${esc(REFURL[k])}" alt="">` : "нет"}</div><b>${esc(label)}</b><span style="color:var(--faint)">${esc(file || "эталона нет — сделайте в «Новый эталон»")}</span>
-      <label class="btn small" style="margin-top:6px;width:100%">${REFS[k] ? "Заменить" : "Загрузить"}<input type="file" accept="image/png,image/jpeg,image/webp" data-refkey="${k}" class="sr"></label></div>`,
+      <label class="btn small" style="margin-top:6px;width:100%">${REFURL[k] ? "Заменить" : "Загрузить"}<input type="file" accept="image/png,image/jpeg,image/webp" data-refkey="${k}" class="sr"></label></div>`,
       )
       .join("")}</div></section>`;
 
