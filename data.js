@@ -41,7 +41,7 @@ Body: ${BODY_SHAPE}, ${PAWS}, ${FEET}.
 Fur: short velvety plush-like fur, warm caramel-orange color (${PAL.fur}), darker chocolate-reddish brown patch on the front of the muzzle (${PAL.muzzle}), paws and feet slightly darker orange-brown.
 Style: polished plush 3D mascot, compact rounded forms, finely visible short fur fibers and tactile fabric textures, matte fur and a softly glossy nose. High detail.`;
 
-const STYLE = "polished plush 3D capybara mascot matching the latest visual style reference, warm caramel-orange fur with short dense finely visible fuzzy fibers, softly rounded surface edges and restrained cheek volume, matte soft-touch surfaces contrasted with a small glossy chocolate nose, soft studio-quality lighting and gentle ambient occlusion; on knitted clothing show thick individual yarn loops, ribbed cuffs, crisp Fair Isle snowflakes and zigzags, and braided cable stitches with long fringe on scarves; keep other clothing materials appropriate to the selected outfit, not plastic or flat vector art";
+const STYLE = "polished plush 3D capybara mascot matching the latest visual style reference, warm caramel-orange fur with short dense finely visible fuzzy fibers, softly rounded surface edges and restrained cheek volume, matte soft-touch surfaces contrasted with a small glossy chocolate nose, soft studio-quality lighting and gentle ambient occlusion; clothing materials must follow each character's outfit-specific material instructions, never transfer the winter reference's yarn texture onto other seasons, not plastic or flat vector art";
 
 /* ---------- персонажи ---------- */
 const CHARS = {
@@ -75,45 +75,45 @@ const STYLE_REF = { key: "style-reference", file: "capybara-style-v2.png", label
 
 const OUTFITS = [
   /* базовые */
-  { id: "dad-base", who: "dad", season: "base", name: "Свитер в полоску и брюки", ref: "Rectangle-8.jpg",
-    en: `red knitted sweater (${PAL.red}) with wide horizontal off-white stripes (${PAL.offwhite}), ribbed collar and cuffs, covering the hips; loose straight beige chino trousers (${PAL.beige}) with rolled-up cuffs at the ankles and two back patch pockets; barefoot`,
-    keep: "sweater, trousers", neg: [] },
-  { id: "mom-base", who: "mom", season: "base", name: "Свитер и юбка в полоску", ref: "Rectangle-24.jpg",
-    en: `plain red knitted sweater (${PAL.red}) without stripes ending at the hips, short pleated A-line skirt with horizontal red and off-white stripes (${PAL.offwhite}) and a thin light pink trim at the hem, ending above the knees; barefoot`,
-    keep: "sweater, skirt", neg: ["trousers", "striped sweater"] },
+  { id: "dad-base", who: "dad", season: "base", name: "Лонгслив в полоску и брюки", ref: "Rectangle-8.jpg",
+    en: `red smooth cotton long-sleeve pullover (${PAL.red}) with wide horizontal off-white stripes (${PAL.offwhite}), smooth folded neckline and cuffs without visible ribbing, covering the hips; loose straight beige chino trousers (${PAL.beige}) with rolled-up cuffs at the ankles and two back patch pockets; barefoot`,
+    keep: "cotton pullover, trousers", neg: [] },
+  { id: "mom-base", who: "mom", season: "base", name: "Лонгслив и юбка в полоску", ref: "Rectangle-24.jpg",
+    en: `plain red smooth cotton long-sleeve pullover (${PAL.red}) without stripes ending at the hips, short pleated A-line skirt with horizontal red and off-white stripes (${PAL.offwhite}) and a thin light pink trim at the hem, ending above the knees; barefoot`,
+    keep: "cotton pullover, skirt", neg: ["trousers", "striped sweater"] },
   { id: "son-base", who: "son", season: "base", name: "Кепка с клевером, футболка, шорты, кеды", ref: "Rectangle-17.jpg",
-    en: `bright yellow baseball cap (${PAL.yellow}) worn straight with a green four-leaf clover emblem (${PAL.clover}) on the front panel; red short-sleeve T-shirt (${PAL.red}) with wide white stripes; loose red knee-length shorts; green high-top sneakers (${PAL.green}) with white laces, white toe caps and white soles`,
+    en: `bright yellow sewn cotton-canvas baseball cap (${PAL.yellow}) worn straight with a green four-leaf clover emblem (${PAL.clover}) on the front panel; red short-sleeve smooth cotton T-shirt (${PAL.red}) with wide white stripes; loose red knee-length shorts; green high-top sneakers (${PAL.green}) with white laces, white toe caps and white soles`,
     keep: "cap, T-shirt, shorts, sneakers", neg: ["sweater", "trousers", "barefoot"] },
 
   /* весна — черновики, эталонов нет */
-  { id: "dad-spring", who: "dad", season: "spring", name: "Кардиган поверх свитера", ref: null, draft: true,
-    en: `light off-white knitted cardigan (${PAL.offwhite}) with small red buttons, worn open over the red-and-off-white striped sweater; the same beige chino trousers with rolled-up cuffs; barefoot`,
-    keep: "cardigan, sweater, trousers", neg: ["hat", "scarf"] },
-  { id: "mom-spring", who: "mom", season: "spring", name: "Жёлтый кардиган и цветок", ref: null, draft: true,
-    en: `light yellow knitted cardigan (${PAL.yellow}) worn open over the plain red sweater, the same red-and-off-white striped pleated skirt, a small white flower clip on the head between the ears; barefoot`,
-    keep: "cardigan, sweater, skirt, flower clip", neg: ["trousers", "hat"] },
+  { id: "dad-spring", who: "dad", season: "spring", name: "Лёгкая куртка поверх лонгслива", ref: null, draft: true,
+    en: `light off-white smooth cotton button-front jacket (${PAL.offwhite}) with small red buttons, worn open over the red-and-off-white striped smooth cotton long-sleeve pullover; the same beige chino trousers with rolled-up cuffs; barefoot`,
+    keep: "cotton jacket, cotton pullover, trousers", neg: ["hat", "scarf"] },
+  { id: "mom-spring", who: "mom", season: "spring", name: "Лёгкая куртка и цветок", ref: null, draft: true,
+    en: `light yellow smooth cotton button-front jacket (${PAL.yellow}) worn open over the plain red smooth cotton long-sleeve pullover, the same red-and-off-white striped pleated skirt, a small white flower clip on the head between the ears; barefoot`,
+    keep: "cotton jacket, cotton pullover, skirt, flower clip", neg: ["trousers", "hat"] },
   { id: "son-spring", who: "son", season: "spring", name: "Зелёная ветровка", ref: null, draft: true,
     en: `the yellow baseball cap with the green clover (${PAL.clover}) worn straight, a light green zip-up windbreaker (${PAL.clover}) worn open over the red striped T-shirt, red knee-length shorts, green high-top sneakers (${PAL.green})`,
     keep: "cap, windbreaker, T-shirt, shorts, sneakers", neg: ["sweater", "trousers", "barefoot"] },
 
   /* лето */
   { id: "dad-summer", who: "dad", season: "summer", name: "Футболка в полоску и жёлтые очки", ref: "Rectangle-67.jpg",
-    en: `loose short-sleeve T-shirt with wide horizontal red (${PAL.red}) and off-white (${PAL.offwhite}) stripes covering the hips; yellow sunglasses (${PAL.yellow}) with rounded rectangular frames and dark green tinted lenses on top of the muzzle in front of the eyes; no trousers, bare legs, barefoot`,
+    en: `loose short-sleeve smooth cotton T-shirt with wide horizontal red (${PAL.red}) and off-white (${PAL.offwhite}) stripes covering the hips; yellow sunglasses (${PAL.yellow}) with rounded rectangular frames and dark green tinted lenses on top of the muzzle in front of the eyes; no trousers, bare legs, barefoot`,
     keep: "T-shirt, sunglasses", neg: ["trousers", "chinos", "shorts", "sweater", "black sunglasses"] },
   { id: "mom-summer", who: "mom", season: "summer", name: "Сарафан и соломенная шляпа", ref: "Rectangle-63.jpg",
-    en: `sleeveless sundress with a red-and-off-white striped fitted bodice and a light flared red skirt with wide off-white stripes near the hem, ending just below the knees; straw boater hat (${PAL.beige}) with a flat crown, wide flat brim and red band, sitting between the ears; barefoot`,
+    en: `sleeveless lightweight smooth cotton sundress with a red-and-off-white striped fitted bodice and a light flared red skirt with wide off-white stripes near the hem, ending just below the knees; straw boater hat (${PAL.beige}) with a flat crown, wide flat brim and red band, sitting between the ears; barefoot`,
     keep: "sundress, straw hat", neg: ["trousers", "sweater", "swimsuit", "floppy sun hat"] },
   { id: "son-summer", who: "son", season: "summer", name: "Футболка в полоску", ref: "Rectangle-65.jpg", noCap: true,
-    en: `loose short-sleeve T-shirt with wide horizontal red (${PAL.red}) and off-white stripes covering the hips; no cap, no shorts, no sneakers; bare legs, barefoot`,
+    en: `loose short-sleeve smooth cotton T-shirt with wide horizontal red (${PAL.red}) and off-white stripes covering the hips; no cap, no shorts, no sneakers; bare legs, barefoot`,
     keep: "T-shirt", neg: ["baseball cap", "shorts", "sneakers", "sweater", "trousers", "sunglasses"] },
 
   /* осень — черновики */
-  { id: "dad-autumn", who: "dad", season: "autumn", name: "Свитер, брюки и жёлтый шарф", ref: null, draft: true,
-    en: `the red-and-off-white striped sweater and beige chino trousers with rolled-up cuffs, plus a long soft yellow knitted scarf (${PAL.yellow}) wrapped once around the neck with one end hanging down the chest; barefoot`,
-    keep: "sweater, trousers, scarf", neg: ["hat", "mittens"] },
+  { id: "dad-autumn", who: "dad", season: "autumn", name: "Лонгслив, брюки и жёлтый шарф", ref: null, draft: true,
+    en: `the red-and-off-white striped smooth cotton long-sleeve pullover and beige chino trousers with rolled-up cuffs, plus a long soft yellow lightweight woven cotton scarf with a smooth flat weave (${PAL.yellow}) wrapped once around the neck with one end hanging down the chest; barefoot`,
+    keep: "cotton pullover, trousers, scarf", neg: ["hat", "mittens"] },
   { id: "mom-autumn", who: "mom", season: "autumn", name: "Берет и жёлтые сапожки", ref: null, draft: true,
-    en: `the plain red sweater and red-and-off-white striped pleated skirt, a soft red knitted beret (${PAL.red}) tilted slightly between the ears, short glossy yellow rubber boots (${PAL.yellow})`,
-    keep: "sweater, skirt, beret, boots", neg: ["trousers", "earmuffs"] },
+    en: `the plain red smooth cotton long-sleeve pullover and red-and-off-white striped pleated skirt, a soft red woven cotton beret (${PAL.red}) tilted slightly between the ears, short glossy yellow rubber boots (${PAL.yellow})`,
+    keep: "cotton pullover, skirt, beret, boots", neg: ["trousers", "earmuffs"] },
   { id: "son-autumn", who: "son", season: "autumn", name: "Жёлтый дождевик и сапоги", ref: null, draft: true,
     en: `the yellow baseball cap with the green clover (${PAL.clover}) worn straight, a glossy yellow raincoat (${PAL.yellow}) with big round buttons and the hood down, red knee-length shorts, glossy yellow rubber boots`,
     keep: "cap, raincoat, shorts, boots", neg: ["sweater", "trousers", "sneakers"] },

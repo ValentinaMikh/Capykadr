@@ -94,7 +94,7 @@ function build(state) {
     L.push(styleInstructions(refs));
     if (newyear) L.push(`Image ${refs.length} is the visual style and holiday outfit reference: match its red knitted beanie, white winter patterns and sage-green scarf. Use Image 1 for recognizable character identity and relative family height only.`);
     L.push(`Character details: ${ch.body}. Eyes: ${ch.face}. Paws: four short fingers with small darker brown pads.`);
-    L.push(`Outfit: ${o.en}.`);
+    L.push(`Outfit: ${outfitDescription(o)}.`);
     if (p.prop) L.push(`Prop: ${p.prop}.`);
     L.push(`Pose: ${poseText(p, c.who).replace("{object}", c.object || "the object")}.`);
     L.push(`Expression: ${e.en}.`);
@@ -118,7 +118,7 @@ function build(state) {
       const ch = C.CHARS[c.who], o = by(C.OUTFITS, c.outfit), p = by(C.POSES, c.pose), e = emotion(c, p);
       if (e.mouth === "open") mouthOpen.push(c.who);
       L.push(`${i + 1}. ${cap(ch.en)} (Image ${i + 1}):`);
-      L.push(`   Outfit: ${o.en}.`);
+      L.push(`   Outfit: ${outfitDescription(o)}.`);
       if (p.prop) L.push(`   Prop: ${p.prop}.`);
       const ov = act.override && act.override[c.who];
       L.push(`   Pose: ${ov || poseText(p, c.who).replace("{object}", c.object || "the object")}.`);
@@ -142,7 +142,7 @@ function build(state) {
   if (state.action === "product") L.push("Do not render any readable text or logos on the packaging; keep labels as simple shapes.");
 
   /* негатив: в Nano Banana нет отдельного поля, поэтому строка Avoid */
-  let neg = [...C.NEG_BASE];
+  let neg = [...C.NEG_BASE, ...clothingNegatives(chars)];
   if (!mouthOpen.length) neg.push(...C.NEG_TEETH);
   if (multi) neg.push(...C.NEG_GROUP);
   else {
@@ -182,7 +182,7 @@ function buildWhite(state) {
     styleInstructions(refs),
     "Apply facial details only where visible; never rotate a back view or source pose to reveal the face."
   ];
-  chars.forEach(c => lines.push(`${cap(C.CHARS[c.who].en)} outfit: ${by(C.OUTFITS,c.outfit).en}.`));
+  chars.forEach(c => lines.push(`${cap(C.CHARS[c.who].en)} outfit: ${outfitDescription(by(C.OUTFITS,c.outfit))}.`));
   const clothing = refs.findIndex(r=>r.key==="newyear-outfit");
   if (clothing >= 0) lines.push(`Match Image ${clothing+1} for visual style and holiday clothing, not for pose, orientation, expression or relative family height.`);
   if (sourcePose) {
@@ -201,7 +201,7 @@ function buildWhite(state) {
   lines.push("Background: solid pure white (#FFFFFF), seamless and evenly lit; no scenery, no gradient, no floor texture, no decorations, no props. Only a very soft neutral contact shadow is allowed.");
   lines.push(`Frame: ${frame.en}; show the complete body, headwear, paws and feet without cropping. ${sourcePose ? "Match the camera angle and viewing direction of the source image while preserving its pose." : "Straight-on undistorted camera at chest height; keep the specified body orientation."}`);
   lines.push(`Lighting: soft even neutral studio lighting. Style: ${C.STYLE}. High detail, character reference quality.`);
-  lines.push(`Avoid: ${uniq([...C.NEG_BASE,...(sourcePose ? [] : C.NEG_TEETH),...(chars.length>1 ? C.NEG_GROUP : []),"colored background","background scenery","background gradient","floor texture","held props",...(sourcePose ? [] : ["action pose","gestures","T-pose"])]).join(", ")}.`);
+  lines.push(`Avoid: ${uniq([...C.NEG_BASE,...clothingNegatives(chars),...(sourcePose ? [] : C.NEG_TEETH),...(chars.length>1 ? C.NEG_GROUP : []),"colored background","background scenery","background gradient","floor texture","held props",...(sourcePose ? [] : ["action pose","gestures","T-pose"])]).join(", ")}.`);
   return { ...base, prompt:lines.join("\n\n"), refs, instructions:instructions(refs,frame,chars.length>1) };
 }
 
@@ -215,22 +215,37 @@ function buildReference(outfitId) {
     `Body shape: ${C.BODY_SHAPE}.`,
     styleInstructions(refs),
     ...(o.season === "newyear" ? ["Image 2 is the visual style and holiday outfit reference. Match its red knitted beanie, white winter patterns and sage-green scarf; use Image 1 for recognizable character identity and relative family height only."] : []),
-    `Outfit: ${o.en}.`,
+    `Outfit: ${outfitDescription(o)}.`,
     `Expression: ${by(C.EMOTIONS, C.DEFAULT_EMO[o.who]).en}.`,
     `Style: ${C.STYLE}.`,
     "Pose and framing: T-pose, standing straight and symmetrical, facing the viewer directly, arms extended horizontally to the sides, legs slightly apart. Straight-on front view, full body including any headwear, centered composition.",
     "Background: plain pure white background, soft even studio lighting, soft contact shadow under the feet.",
     "High detail, character model sheet quality.",
     "",
-    `Avoid: ${uniq([...C.NEG_BASE, ...C.NEG_TEETH, ...C.NEG_TPOSE, ...ch.neg, ...o.neg]).join(", ")}.`
+    `Avoid: ${uniq([...C.NEG_BASE, ...clothingNegatives([{outfit:o.id}]), ...C.NEG_TEETH, ...C.NEG_TPOSE, ...ch.neg, ...o.neg]).join(", ")}.`
   ];
   return { prompt: p.join("\n"), refs,
     instructions: ["Приложите вторым изображением новый референс стиля (для Нового года он задаёт и одежду).", `Приложите первой картинкой: эталон «${ch.name} · базовый» (кнопка «Скачать» ниже).`, "Вставьте промт и сгенерируйте.", "Удачный результат сохраните: он станет эталоном для всех поз в этой одежде. Админ загружает его в сервис."] };
 }
 
+function isWinterOutfit(outfit) {
+  return ["winter", "newyear"].includes(outfit.season);
+}
+function outfitDescription(outfit) {
+  const materials = isWinterOutfit(outfit)
+    ? "For the knitted winter garments described above, show thick individual yarn loops, ribbed cuffs and the specified knitted patterns; keep trousers and other non-knit pieces in their specified fabrics."
+    : "Use smooth lightweight cotton fabric and fine flat woven textiles, subtle seams and natural fabric folds. Colors and stripes are printed or dyed into a smooth surface. For items explicitly listed in this outfit only: caps are sewn cotton canvas, berets and scarves are smooth woven fabric, raincoats are smooth waterproof coated fabric and boots are rubber. Do not add headwear, scarves, outerwear or shoes that are not listed. No knitted clothing, wool, chunky yarn, crochet, cable stitches or visible knitting loops anywhere on this character, including hat, cuffs and scarf. These material rules override any knitted texture visible in the attached identity or style references.";
+  return `${outfit.en}. Materials for this character: ${materials}`;
+}
+function clothingNegatives(chars) {
+  return chars.every(c => !isWinterOutfit(by(C.OUTFITS,c.outfit)))
+    ? ["knitted clothing", "wool texture", "chunky yarn", "crocheted cap", "cable-knit patterns", "visible knitting loops"]
+    : [];
+}
+
 function styleInstructions(refs) {
   const index = refs.findIndex(r => ["style-reference", "newyear-outfit"].includes(r.key));
-  return `Visual style authority for rendering and materials: Image ${index+1}. Match its short fuzzy fur, tactile textiles, rounded paws, matte finish and lighting quality. The latest style image takes priority for surface rendering only, never for head size, head-to-body proportions, cheek volume or muzzle silhouette. For those, the original identity references and the explicit Face shape instructions above take priority. Do not copy inflated cheeks, a shortened snout or an enlarged head from a style image. Keep the chosen character identities and relative family heights. Do not copy its waving pose, gaze, smiling expression, tangerine or background; use the selected pose and expression, and the outfit described for each character.`;
+  return `Visual style authority for rendering and materials: Image ${index+1}. Match its short fuzzy fur, tactile textiles, rounded paws, matte finish and lighting quality. The latest style image takes priority for surface rendering only, never for head size, head-to-body proportions, cheek volume or muzzle silhouette. For those, the original identity references and the explicit Face shape instructions above take priority. Do not copy inflated cheeks, a shortened snout or an enlarged head from a style image. Keep the chosen character identities and relative family heights. The outfit-specific material rules override the style image: never copy its winter yarn texture onto clothing assigned smooth fabric. Do not copy its waving pose, gaze, smiling expression, tangerine or background; use the selected pose and expression, and the outfit described for each character.`;
 }
 
 /* ---------- вспомогательное ---------- */
