@@ -342,6 +342,7 @@ test("example photo opens an accessible preview with copy, favourite and apply",
     exact: true,
   });
   await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveCSS("background-color", "rgb(0, 0, 0)");
   await expect(dialog.locator(".photo-full")).toHaveAttribute(
     "src",
     "assets/figma/3e23f.png",
@@ -466,6 +467,7 @@ test("gallery grid, pagination, filters and publication modal retain their actio
     exact: true,
   });
   await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveCSS("background-color", "rgb(0, 0, 0)");
   await page.screenshot({
     path: testInfo.outputPath("gallery-modal.png"),
     fullPage: true,

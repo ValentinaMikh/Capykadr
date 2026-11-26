@@ -1386,7 +1386,7 @@ fieldset {
   max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 32px);
   overflow: auto;
-  background: #15181d;
+  background: #000000;
   border-radius: 64px;
 }
 .photo-modal:focus {
