@@ -342,6 +342,7 @@ test("example photo opens an accessible preview with copy, favourite and apply",
     exact: true,
   });
   await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveCSS("background-color", "rgb(0, 0, 0)");
   await expect(dialog.locator(".photo-full")).toHaveAttribute(
     "src",
     "assets/figma/3e23f.png",
@@ -466,6 +467,7 @@ test("gallery grid, pagination, filters and publication modal retain their actio
     exact: true,
   });
   await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveCSS("background-color", "rgb(0, 0, 0)");
   await page.screenshot({
     path: testInfo.outputPath("gallery-modal.png"),
     fullPage: true,
@@ -691,5 +693,62 @@ for (const viewport of [
     await expect
       .poll(() => page.evaluate(() => window.__copied))
       .toContain("character reference");
+  });
+}
+
+for (const width of [1440, 390]) {
+  test(`one or two selected characters stay centred at ${width}px in every season`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: 1080 });
+    await mockAccount(page);
+    await page.goto("/");
+    for (const selected of [
+      ["dad"],
+      ["mom"],
+      ["son"],
+      ["dad", "mom"],
+      ["dad", "son"],
+      ["mom", "son"],
+    ]) {
+      await page.evaluate(() => localStorage.clear());
+      await page.reload();
+      for (const who of selected)
+        await page.locator(`[data-cast="${who}"]`).click();
+      await page.locator("#chooseBtn").click();
+      const verifyPositions = async () => {
+        const preview = await page.locator(".family-preview").boundingBox();
+        const art = await page.locator(".family-art").boundingBox();
+        await expect(page.locator(".family-art > div")).toHaveCount(
+          selected.length,
+        );
+        for (let i = 0; i < selected.length; i++) {
+          const character = await page
+            .locator(`.family-${selected[i]}`)
+            .boundingBox();
+          const center = character.x + character.width / 2;
+          expect(center).toBeCloseTo(
+            art.x +
+              art.width * (selected.length === 1 ? 0.5 : i === 0 ? 0.35 : 0.65),
+            0,
+          );
+          if (selected.length === 1)
+            expect(character.y + character.height / 2).toBeCloseTo(
+              preview.y + preview.height / 2,
+              0,
+            );
+          expect(character.y).toBeGreaterThanOrEqual(preview.y);
+          expect(character.y + character.height).toBeLessThanOrEqual(
+            preview.y + preview.height + 1,
+          );
+        }
+      };
+      await verifyPositions();
+      await capture(page, testInfo, `selected-${selected.join("-")}-${width}`);
+      for (const season of ["spring", "summer", "autumn", "winter"]) {
+        await page.locator(`[data-season="${season}"]`).click();
+        await verifyPositions();
+      }
+    }
   });
 }

@@ -1386,7 +1386,7 @@ fieldset {
   max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 32px);
   overflow: auto;
-  background: #15181d;
+  background: #000000;
   border-radius: 64px;
 }
 .photo-modal:focus {
@@ -2084,4 +2084,15 @@ fieldset {
     height: auto;
     margin: 0;
   }
+}
+
+/* Keep a single character or a pair centred without changing their scale. */
+.family-art[data-count="1"] > div,
+.family-art[data-count="2"] > div {
+  left: var(--family-center);
+  transform: translateX(-50%);
+}
+.family-art[data-count="1"] > div {
+  top: 53.111%;
+  transform: translate(-50%, -50%);
 }

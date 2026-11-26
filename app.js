@@ -351,12 +351,11 @@
     return `<aside class="examples"><h2>Примеры генераций</h2><div class="example-grid" tabindex="0" role="group" aria-label="Примеры генераций">${Array.from({ length: 6 }, (_, i) => (images[i] ? `<button type="button" class="example-button" data-example="${images[i]}" aria-label="Открыть пример: ${EXAMPLE_PHOTOS[images[i]].title}">${art(images[i], "example-image", EXAMPLE_PHOTOS[images[i]].title)}</button>` : art("268b2.png", "example-image"))).join("")}</div></aside>`;
   }
   function familyPreview() {
-    return `<div class="family-preview ${esc(SEASON)}"><div class="family-art">${WHO.filter(
-      (w) => CAST.has(w),
-    )
+    const selected = WHO.filter((w) => CAST.has(w));
+    return `<div class="family-preview ${esc(SEASON)}"><div class="family-art" data-count="${selected.length}">${selected
       .map(
-        (w) =>
-          `<div class="family-${w} ${w === "son" && (!SEASON || SEASON === "spring") ? "base-son" : ""}">${art((SEASON_ART[SEASON] || BASE_ART)[w], "", C.CHARS[w].name)}</div>`,
+        (w, i) =>
+          `<div class="family-${w} ${w === "son" && (!SEASON || SEASON === "spring") ? "base-son" : ""}"${selected.length < 3 ? ` style="--family-center: ${selected.length === 1 ? 50 : i === 0 ? 35 : 65}%"` : ""}>${art((SEASON_ART[SEASON] || BASE_ART)[w], "", C.CHARS[w].name)}</div>`,
       )
       .join(
         "",
