@@ -2543,3 +2543,63 @@ button:focus-visible,
   width: 54.4%;
   height: 54.15%;
 }
+
+/* Team-wide constructor presets in the admin panel. */
+.version-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.version-option {
+  display: grid;
+  gap: 10px;
+  padding: 24px;
+  border: 2px solid transparent;
+  border-radius: 28px;
+  background: #2c2f31;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+.version-option[aria-pressed="true"] {
+  border-color: #cddd52;
+  background: #383c30;
+}
+.version-option:focus-visible {
+  outline: 3px solid #cddd52;
+  outline-offset: 4px;
+}
+.version-option > span {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.version-option small {
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #cddd52;
+  color: #252720;
+  font-size: 12px;
+}
+.version-option b {
+  font-size: 24px;
+}
+.version-option em {
+  font-style: normal;
+  color: #c5c5c5;
+  line-height: 1.4;
+}
+.version-option:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+@media (max-width: 640px) {
+  .version-options {
+    grid-template-columns: 1fr;
+  }
+  .version-option {
+    padding: 20px;
+  }
+}

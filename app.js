@@ -2,9 +2,11 @@
    Данные (вход, история, галерея, аналитика, эталоны) — Supabase, права ограничены RLS. */
 (() => {
   "use strict";
-  const C = window.CAPY,
-    B = window.CapyBuilder,
+  const V = window.CapyVersions,
     CFG = window.CAPY_CONFIG;
+  let VERSION = 2,
+    C = window.CAPY,
+    B = window.CapyBuilder;
   const sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
   const $ = (id) => document.getElementById(id);
   const esc = (s) =>
@@ -22,11 +24,14 @@
   const by = (l, id) => l.find((o) => o.id === id);
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const WHO = ["dad", "mom", "son"];
-  const KEY = "capykadr-state-v1";
+  let KEY = "capykadr-state-v1";
+  let versionCheck = null,
+    versionSaving = false;
 
   let ME = null,
     ADMIN = false;
-  let REFS = {},
+  let REFERENCE_ROWS = [],
+    REFS = {},
     REFURL = {}; // эталоны: key -> путь в хранилище / подписанная ссылка
 
   /* =====================================================================
@@ -91,8 +96,11 @@
     );
     if (!["scene", "neutral", "reference"].includes(out.outputMode))
       out.outputMode = "scene";
-    if (!by(C.BODY_TURNS, out.bodyTurn)) out.bodyTurn = "front";
-    if (!by(C.GAZES, out.gaze) || out.bodyTurn === "back") out.gaze = "forward";
+    out.constructorVersion = VERSION;
+    if (VERSION === 1) out.outputMode = "scene";
+    if (!by(window.CAPY.BODY_TURNS, out.bodyTurn)) out.bodyTurn = "front";
+    if (!by(window.CAPY.GAZES, out.gaze) || out.bodyTurn === "back")
+      out.gaze = "forward";
     return out;
   }
   let S = (() => {
@@ -105,6 +113,7 @@
   let ACTIVE = S.chars[0].who;
   function save() {
     try {
+      S.constructorVersion = VERSION;
       localStorage.setItem(KEY, JSON.stringify(S));
     } catch (e) {}
   }
@@ -225,12 +234,12 @@
 
   /* Four design steps share the existing prompt model and Supabase persistence. */
   const ART = "assets/figma/";
-  const BASE_ART = {
+  let BASE_ART = {
     dad: "245ef.png",
     mom: "b44e6.png",
     son: C.SON_REFERENCES["son-base"],
   };
-  const SEASON_ART = {
+  let SEASON_ART = {
     spring: BASE_ART,
     summer: {
       dad: "e1ec0.png",
@@ -248,7 +257,7 @@
       son: C.SON_REFERENCES["son-winter"],
     },
   };
-  const REF_ART = {
+  let REF_ART = {
     "dad-base": "07558.png",
     "mom-base": "2cbd4.png",
     ...C.SON_REFERENCES,
@@ -256,6 +265,26 @@
     "newyear-outfit": "capybara-style-v2.png",
     "style-reference": "capybara-style-v2.png",
   };
+  const CURRENT_ART = { base: BASE_ART, seasons: SEASON_ART, refs: REF_ART };
+  const ORIGINAL_ART = {
+    base: { dad: "245ef.png", mom: "b44e6.png", son: "9870a.png" },
+    seasons: {
+      spring: { dad: "245ef.png", mom: "b44e6.png", son: "9870a.png" },
+      summer: { dad: "e1ec0.png", mom: "a7e7b.png", son: "4d195.png" },
+      autumn: { dad: "1a8e0.png", mom: "b8570.png", son: "2b890.png" },
+      winter: { dad: "cc67a.png", mom: "e77ec.png", son: "4a990.png" },
+    },
+    refs: {
+      "dad-base": "07558.png",
+      "mom-base": "2cbd4.png",
+      "son-base": "74fc8.png",
+      lineup: "e1d62.png",
+    },
+  };
+  for (const [season, images] of Object.entries(ORIGINAL_ART.seasons)) {
+    if (season === "spring") continue;
+    for (const who of WHO) ORIGINAL_ART.refs[`${who}-${season}`] = images[who];
+  }
   const SEASONS = [
     { id: "spring", name: "Весна", wash: "4d9e4.svg", icon: "f5fba.svg" },
     { id: "summer", name: "Лето", wash: "2acd9.svg", icon: "d8713.svg" },
@@ -344,6 +373,7 @@
     save();
   }
   function setSeason(id) {
+    if (VERSION === 1 && id === "newyear") return;
     SEASON = id;
     S.designSeason = id;
     // The spring frame uses the original clothes, exactly as shown in Figma.
@@ -383,13 +413,14 @@
     return `<div class="family-preview ${esc(SEASON)}"><div class="family-art" data-count="${selected.length}">${selected
       .map(
         (w, i) =>
-          `<div class="family-${w} ${w === "son" ? "new-son-reference" : ""}"${selected.length < 3 ? ` style="--family-center: ${selected.length === 1 ? 50 : i === 0 ? 35 : 65}%"` : ""}>${art((SEASON_ART[SEASON] || BASE_ART)[w], "", C.CHARS[w].name)}</div>`,
+          `<div class="family-${w} ${w === "son" ? (VERSION === 2 ? "new-son-reference" : !SEASON || SEASON === "spring" ? "base-son" : "") : ""}"${selected.length < 3 ? ` style="--family-center: ${selected.length === 1 ? 50 : i === 0 ? 35 : 65}%"` : ""}>${art((SEASON_ART[SEASON] || BASE_ART)[w], "", C.CHARS[w].name)}</div>`,
       )
       .join(
         "",
       )}</div>${SEASON === "autumn" ? `<div class="season-decoration leaves">${art("dc068.png")}</div>` : SEASON === "winter" ? `<div class="season-decoration snow">${art("77587.png")}</div>` : ""}</div>`;
   }
   function whiteControls() {
+    if (VERSION === 1) return "";
     const white = S.outputMode !== "scene";
     return `<div class="generation-controls"><label class="white-toggle"><input id="whiteBackground" type="checkbox" ${white ? "checked" : ""}><span class="switch-track" aria-hidden="true"></span><span>На белом фоне</span></label>
       <span class="generation-hint">${white ? "Без сюжета и предметов" : "Выберите сюжет или включите режим эталона"}</span>
@@ -407,9 +438,9 @@
     el.dataset.motionStep = String(STEP);
     let h = "";
     if (STEP === 0) {
-      h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${w === "son" ? "new-son-reference" : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
+      h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${w === "son" ? (VERSION === 2 ? "new-son-reference" : "base-son") : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
     } else if (STEP === 1) {
-      h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" aria-checked="${SEASON === s.id}">${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
+      h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" ${VERSION === 1 && s.id === "newyear" ? 'disabled title="Доступно в версии 2"' : ""} aria-checked="${SEASON === s.id}">${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
     } else if (STEP === 2) {
       h = `<div class="scene-workspace">${whiteControls()}${S.outputMode === "scene" ? `<div class="scene-grid">${SCENES.map((s) => `<button type="button" class="scene-choice" data-scene="${s.id}" aria-pressed="${SCENE === s.id}"><span class="scene-image">${art(s.id === "cafe" ? "914cd.png" : "268b2.png", "", s.name)}${SCENE === s.id ? `<span class="scene-check">${art("f4244.svg")}</span>` : ""}</span><span>${s.name}</span></button>`).join("")}${Array.from({ length: 4 }, () => '<div class="scene-empty" aria-hidden="true"></div>').join("")}</div>` : `<div class="white-mode-preview"><span aria-hidden="true">${S.outputMode === "neutral" ? "◇" : "↗"}</span><h2>${S.outputMode === "neutral" ? "Нейтральный эталон" : "Поза из исходника"}</h2><p>${S.outputMode === "neutral" ? "Выбранные капибары без действия, на чистом белом фоне" : "Та же поза и направление взгляда, новый белый фон"}</p></div>`}</div>`;
     } else {
@@ -620,6 +651,7 @@
   }
   function stateMeta(st) {
     return {
+      constructorVersion: st.constructorVersion || VERSION,
       who: st.chars.map((c) => c.who),
       outfits: st.chars.map((c) => c.outfit),
       poses: st.chars.map((c) => c.pose),
@@ -630,15 +662,18 @@
   }
   async function copyPrompt() {
     if (!LAST || LAST.issues.length) return;
-    if (!(await copyText(LAST.prompt))) {
+    if (!(await refreshVersion())) return;
+    const result = LAST,
+      st = clone(S);
+    st.constructorVersion = VERSION;
+    if (!(await copyText(result.prompt))) {
       toast("Не получилось скопировать. Выделите текст промта вручную.");
       return;
     }
     toast("Промт скопирован");
     window.CapyMotion.success($("copyBtn"));
-    const st = clone(S);
     sb.from("prompt_history")
-      .insert({ state: st, prompt: LAST.prompt })
+      .insert({ state: st, prompt: result.prompt })
       .then(({ error }) => {
         if (error) toast("Промт скопирован, но историю сохранить не удалось");
       });
@@ -648,12 +683,41 @@
   /* =====================================================================
    ЭТАЛОНЫ (картинки в закрытом хранилище refs)
    ===================================================================== */
-  async function loadRefs() {
+  function setVersion(version) {
+    if (version === VERSION) return;
+    save();
+    VERSION = version;
+    ({ data: C, builder: B } = V.preset(version));
+    KEY = version === 2 ? "capykadr-state-v1" : "capykadr-state-original-v1";
+    try {
+      S = normalize(JSON.parse(localStorage.getItem(KEY)));
+    } catch {
+      S = normalize(null);
+    }
+    ACTIVE = S.chars[0].who;
+    CAST = new Set(localStorage.getItem(KEY) ? S.chars.map((c) => c.who) : []);
+    SEASON = S.designSeason || "";
+    SCENE = S.designScene || "";
+    STEP = 0;
+    LAST = null;
+    const assets = version === 1 ? ORIGINAL_ART : CURRENT_ART;
+    BASE_ART = assets.base;
+    SEASON_ART = assets.seasons;
+    REF_ART = assets.refs;
+    document.body.dataset.constructorVersion = String(VERSION);
+  }
+  async function loadRefs(rows) {
     REFS = {};
     REFURL = {};
-    const { data } = await sb.from("ref_images").select("*");
-    (data || []).forEach((r) => {
-      // The new bundled son references supersede older uploads. Later admin replacements still win.
+    if (!rows) {
+      const result = await sb.from("ref_images").select("*");
+      if (result.error) throw result.error;
+      rows = result.data || [];
+    }
+    REFERENCE_ROWS = rows;
+    rows.forEach((r) => {
+      if (r.id === V.settingId || VERSION === 1) return;
+      // Version 1 is immutable; later uploads only replace version 2 references.
       if (
         C.SON_REFERENCES[r.id] &&
         !(Date.parse(r.updated_at) > Date.parse(C.SON_REFERENCE_REVISION))
@@ -671,10 +735,47 @@
         if (u?.signedUrl) REFURL[keys[i]] = u.signedUrl;
       });
     }
-    Object.entries(C.SON_REFERENCES).forEach(([key, file]) => {
+    const bundled = VERSION === 1 ? REF_ART : C.SON_REFERENCES;
+    Object.entries(bundled).forEach(([key, file]) => {
       if (!REFURL[key]) REFURL[key] = ART + file;
     });
   }
+  async function refreshVersion() {
+    if (!ME || versionSaving) return false;
+    if (versionCheck) return versionCheck;
+    versionCheck = (async () => {
+      try {
+        const result = await sb.from("ref_images").select("*");
+        if (result.error) throw result.error;
+        const rows = result.data || [];
+        const next = V.decode(rows);
+        if (next === VERSION) return true;
+        setVersion(next);
+        await loadRefs(rows);
+        renderAll();
+        if (!$("v-admin").hidden) await loadAdmin();
+        toast(
+          `Команда перешла на версию ${VERSION}. Проверьте настройки перед копированием.`,
+        );
+        return false;
+      } catch {
+        toast("Не удалось проверить версию команды. Повторите попытку.");
+        return false;
+      }
+    })();
+    try {
+      return await versionCheck;
+    } finally {
+      versionCheck = null;
+    }
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refreshVersion();
+  });
+  window.addEventListener("focus", () => refreshVersion());
+  setInterval(() => {
+    if (!document.hidden) refreshVersion();
+  }, 30000);
 
   /* =====================================================================
    МОИ ПРОМТЫ
@@ -765,6 +866,12 @@
     }
   });
   function applyState(st) {
+    if (st.constructorVersion && st.constructorVersion !== VERSION) {
+      toast(
+        `Этот промт создан в версии ${st.constructorVersion}. Попросите администратора включить её для команды.`,
+      );
+      return;
+    }
     S = normalize(clone(st));
     ACTIVE = S.chars[0].who;
     CAST = new Set(S.chars.map((c) => c.who));
@@ -1253,7 +1360,7 @@
       const p = people.find((x) => x.id === id);
       return p ? p.name || p.email : "—";
     };
-    let h = `<div class="kpis">
+    let h = `<section class="block constructor-versions" aria-labelledby="versionsTitle"><h2 id="versionsTitle">Версия конструктора</h2><p class="hint">Общая для всей команды. Изменения появятся у коллег в течение 30 секунд или при возвращении на вкладку. Черновики каждой версии сохраняются отдельно.</p><div class="version-options" role="group" aria-label="Версия конструктора">${[1, 2].map((v) => `<button type="button" class="version-option" data-version="${v}" aria-pressed="${VERSION === v}"><span>Версия ${v}${v === 2 ? "<small>По умолчанию</small>" : ""}</span><b>${v === 1 ? "Исходная" : "Текущая"}</b><em>${v === 1 ? "Прежние промты и оригинальные капибары" : "Новый стиль, актуальные промты и эталоны"}</em></button>`).join("")}</div><p class="err" id="versionError" role="alert"></p></section><div class="kpis">
     <div class="kpi"><b>${people.length}</b><span>человек в команде</span></div>
     <div class="kpi"><b>${copies.filter((e) => +new Date(e.created_at) > d30).length}</b><span>промтов за 30 дней</span></div>
     <div class="kpi"><b>${events.filter((e) => e.kind === "copy_reference").length}</b><span>эталонов за 90 дней</span></div>
@@ -1326,7 +1433,7 @@
           label,
           file,
         ]) => `<div class="refcell"><div class="im">${REFURL[k] ? `<img src="${esc(REFURL[k])}" alt="">` : "нет"}</div><b>${esc(label)}</b><span style="color:var(--faint)">${esc(file || "эталона нет — сделайте в «Новый эталон»")}</span>
-      <label class="btn small" style="margin-top:6px;width:100%">${REFURL[k] ? "Заменить" : "Загрузить"}<input type="file" accept="image/png,image/jpeg,image/webp" data-refkey="${k}" class="sr"></label></div>`,
+      ${VERSION === 1 ? '<span class="hint">Исходный эталон</span>' : `<label class="btn small" style="margin-top:6px;width:100%">${REFURL[k] ? "Заменить" : "Загрузить"}<input type="file" accept="image/png,image/jpeg,image/webp" data-refkey="${k}" class="sr"></label>`}</div>`,
       )
       .join("")}</div></section>`;
 
@@ -1360,7 +1467,7 @@
   }
   $("aBody").addEventListener("change", async (e) => {
     const inp = e.target.closest("[data-refkey]");
-    if (!inp || !inp.files[0]) return;
+    if (!ADMIN || VERSION === 1 || !inp || !inp.files[0]) return;
     const file = inp.files[0],
       key = inp.dataset.refkey,
       path = `${key}.${extOf(file)}`;
@@ -1391,6 +1498,38 @@
   $("aBody").addEventListener("click", async (e) => {
     const b = e.target.closest("button");
     if (!b) return;
+    if (b.dataset.version) {
+      if (!ADMIN || versionSaving) return;
+      const next = Number(b.dataset.version);
+      if (![1, 2].includes(next) || next === VERSION) return;
+      versionSaving = true;
+      $("versionError").textContent = "";
+      document.querySelectorAll("[data-version]").forEach((el) => {
+        el.disabled = true;
+      });
+      try {
+        const result = await sb.from("ref_images").upsert({
+          id: V.settingId,
+          image_path: V.manifests[next],
+          updated_at: new Date().toISOString(),
+        });
+        if (result.error) throw result.error;
+        setVersion(next);
+        await loadRefs(REFERENCE_ROWS.filter((r) => r.id !== V.settingId));
+        renderAll();
+        await loadAdmin();
+        toast(`Версия ${next} включена для всей команды`);
+      } catch {
+        $("versionError").textContent =
+          "Не удалось сменить версию. Проверьте соединение и попробуйте ещё раз.";
+      } finally {
+        versionSaving = false;
+        document.querySelectorAll("[data-version]").forEach((el) => {
+          el.disabled = false;
+        });
+      }
+      return;
+    }
     if (b.id === "tpwGo") {
       const v = $("tpw").value.trim(),
         err = $("tpwErr");
@@ -1585,7 +1724,18 @@
     if (prof && prof.name) ME.name = prof.name;
     const { data: adm } = await sb.rpc("is_admin");
     ADMIN = !!adm;
-    await loadRefs();
+    try {
+      const settings = await sb.from("ref_images").select("*");
+      if (settings.error) throw settings.error;
+      setVersion(V.decode(settings.data || []));
+      document.body.dataset.constructorVersion = String(VERSION);
+      await loadRefs(settings.data || []);
+    } catch {
+      showGate();
+      $("gErr").textContent =
+        "Не удалось загрузить версию команды. Проверьте соединение и повторите вход.";
+      return;
+    }
     const nm = ME.name || ME.email.split("@")[0];
     $("uBtn").setAttribute("aria-label", `Меню профиля: ${nm}`);
     $("uName").textContent = nm;
