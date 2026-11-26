@@ -30,7 +30,8 @@
 
   let ME = null,
     ADMIN = false;
-  let REFS = {},
+  let REFERENCE_ROWS = [],
+    REFS = {},
     REFURL = {}; // эталоны: key -> путь в хранилище / подписанная ссылка
 
   /* =====================================================================
@@ -713,6 +714,7 @@
       if (result.error) throw result.error;
       rows = result.data || [];
     }
+    REFERENCE_ROWS = rows;
     rows.forEach((r) => {
       if (r.id === V.settingId || VERSION === 1) return;
       // Version 1 is immutable; later uploads only replace version 2 references.
@@ -1513,7 +1515,7 @@
         });
         if (result.error) throw result.error;
         setVersion(next);
-        await loadRefs();
+        await loadRefs(REFERENCE_ROWS.filter((r) => r.id !== V.settingId));
         renderAll();
         await loadAdmin();
         toast(`Версия ${next} включена для всей команды`);
@@ -1722,11 +1724,18 @@
     if (prof && prof.name) ME.name = prof.name;
     const { data: adm } = await sb.rpc("is_admin");
     ADMIN = !!adm;
-    const settings = await sb.from("ref_images").select("*");
-    if (settings.error) throw settings.error;
-    setVersion(V.decode(settings.data || []));
-    document.body.dataset.constructorVersion = String(VERSION);
-    await loadRefs(settings.data || []);
+    try {
+      const settings = await sb.from("ref_images").select("*");
+      if (settings.error) throw settings.error;
+      setVersion(V.decode(settings.data || []));
+      document.body.dataset.constructorVersion = String(VERSION);
+      await loadRefs(settings.data || []);
+    } catch {
+      showGate();
+      $("gErr").textContent =
+        "Не удалось загрузить версию команды. Проверьте соединение и повторите вход.";
+      return;
+    }
     const nm = ME.name || ME.email.split("@")[0];
     $("uBtn").setAttribute("aria-label", `Меню профиля: ${nm}`);
     $("uName").textContent = nm;

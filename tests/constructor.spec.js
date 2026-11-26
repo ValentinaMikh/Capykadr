@@ -1125,7 +1125,10 @@ test("later administrator uploads can replace the bundled son reference", async 
 });
 
 async function connectVersionRegistry(page, registry, admin = true) {
-  await page.exposeFunction("__getRefRows", () => registry.rows);
+  await page.exposeFunction("__getRefRows", () => {
+    if (registry.readError) throw new Error("Network unavailable");
+    return registry.rows;
+  });
   await page.exposeFunction("__setRefRow", (row) => {
     if (registry.fail || !admin) return { error: { message: "Denied" } };
     registry.rows = registry.rows.filter((r) => r.id !== row.id).concat(row);
@@ -1372,4 +1375,27 @@ test("copied history records the version and a stale team version cannot be copi
   );
   expect(saved.state.constructorVersion).toBe(1);
   expect(saved.prompt).toContain("boxy muzzle");
+});
+
+test("unavailable team settings do not silently expose a different version", async ({
+  page,
+}) => {
+  const registry = { rows: [], readError: true };
+  await connectVersionRegistry(page, registry);
+  await page.goto("/");
+  await expect(page.locator("#gateForm")).toBeVisible();
+  await expect(page.locator("#gErr")).toContainText(
+    "Не удалось загрузить версию команды",
+  );
+  await expect(page.locator("#app")).toBeHidden();
+  registry.readError = false;
+  registry.rows = [
+    { id: "constructor-version", image_path: "versions/v1.json" },
+  ];
+  await page.reload();
+  await expect(page.locator("#app")).toBeVisible();
+  await expect(page.locator("body")).toHaveAttribute(
+    "data-constructor-version",
+    "1",
+  );
 });
