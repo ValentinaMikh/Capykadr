@@ -300,3 +300,15 @@ for (const season of ["base", "summer", "autumn", "winter"])
 console.log(
   "Version checks passed: original source frozen, all original seasons, isolated builders and default version 2.",
 );
+
+const winterDad = B.build(state(["dad"], "winter"));
+assert.ok(winterDad.prompt.includes("beige chino trousers"));
+assert.ok(winterDad.prompt.includes("sage-green knitted scarf"));
+assert.ok(
+  !winterDad.prompt.split("Avoid:")[1].split(", ").includes("trousers"),
+);
+assert.ok(
+  B.build(state(["mom"], "winter")).prompt.includes(
+    "plain red pleated skirt without stripes",
+  ),
+);

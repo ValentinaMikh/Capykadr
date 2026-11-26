@@ -63,7 +63,7 @@ const CHARS = {
 };
 
 /* ---------- сезоны и одежда ----------
-   ref — файл эталона в T-позе из папки «Капибары рефы». null = эталона нет. */
+   ref — файл эталона персонажа. null = эталона нет. */
 const SEASONS = [
   ["base", "Базовый"], ["spring", "Весна"], ["summer", "Лето"], ["autumn", "Осень"], ["winter", "Зима"], ["newyear", "Новый год"]
 ];
@@ -129,7 +129,7 @@ const OUTFITS = [
     en: `loose short-sleeve smooth cotton T-shirt with wide horizontal red (${PAL.red}) and off-white stripes covering the hips; no cap, no shorts, no sneakers; bare legs, barefoot`,
     keep: "T-shirt", neg: ["baseball cap", "shorts", "sneakers", "sweater", "trousers", "sunglasses"] },
 
-  /* осень — черновики */
+  /* осень */
   { id: "dad-autumn", who: "dad", season: "autumn", name: "Лонгслив, брюки и жёлтый шарф", ref: BUNDLED_REFERENCES["dad-autumn"],
     en: `the red-and-off-white striped smooth cotton long-sleeve pullover and beige chino trousers with rolled-up cuffs, plus a long soft yellow lightweight woven cotton scarf with a smooth flat weave (${PAL.yellow}) wrapped once around the neck with one end hanging down the chest; barefoot`,
     keep: "cotton pullover, trousers, scarf", neg: ["hat", "mittens"] },
@@ -141,14 +141,14 @@ const OUTFITS = [
     keep: "cap, raincoat, shorts, boots", neg: ["sweater", "trousers", "sneakers"] },
 
   /* зима */
-  { id: "dad-winter", who: "dad", season: "winter", name: "Шапка, шарф, варежки", ref: BUNDLED_REFERENCES["dad-winter"],
-    en: `red knitted Christmas sweater (${PAL.red}) with an off-white chevron band across the chest and sleeves and small green fir-tree motifs (${PAL.green}) on the belly; red knitted beanie with off-white chevron bands and a fluffy red-and-white pompom; long red knitted scarf with off-white chevrons; red knitted mittens with a small off-white snowflake; no trousers, bare legs, barefoot`,
-    keep: "sweater, beanie, scarf, mittens", neg: ["trousers", "chinos", "striped sweater", "Santa hat", "gloves with fingers"] },
+  { id: "dad-winter", who: "dad", season: "winter", name: "Шапка, зелёный шарф и брюки", ref: BUNDLED_REFERENCES["dad-winter"],
+    en: `red knitted winter sweater (${PAL.red}) with off-white snowflakes and chevron bands on the chest and sleeves; red knitted beanie with off-white zigzag bands and no pompom; long sage-green knitted scarf with a chevron texture and fringed ends hanging over the chest; loose beige chino trousers (${PAL.beige}) with rolled-up ankle cuffs; bare paws without mittens, barefoot`,
+    keep: "sweater, beanie, green scarf, trousers", neg: ["striped sweater", "Santa hat", "mittens", "red scarf", "pompom"] },
   { id: "dad-winter-sw", who: "dad", season: "winter", name: "Только свитер", ref: null,
     en: `red knitted Christmas sweater (${PAL.red}) with an off-white chevron band across the chest and sleeves and small green fir-tree motifs (${PAL.green}) on the belly; no hat, no scarf, no mittens; no trousers, bare legs, barefoot`,
     keep: "sweater", neg: ["trousers", "chinos", "striped sweater", "hat", "scarf", "mittens"] },
   { id: "mom-winter", who: "mom", season: "winter", name: "Свитер с сердцами, наушники, шарф", ref: BUNDLED_REFERENCES["mom-winter"],
-    en: `red knitted Christmas sweater (${PAL.red}) with an off-white chevron band and two chevron-knit heart motifs on the chest; the same red-and-off-white striped pleated skirt; fluffy pastel pink earmuffs; long soft pink knitted scarf with a darker pink chevron pattern; barefoot`,
+    en: `red knitted Christmas sweater (${PAL.red}) with an off-white chevron band and two chevron-knit heart motifs on the chest; plain red pleated skirt without stripes; fluffy pastel pink earmuffs; long soft pink knitted scarf with a darker pink chevron pattern; barefoot`,
     keep: "sweater, skirt, earmuffs, scarf", neg: ["trousers", "hat", "beanie"] },
   { id: "son-winter", who: "son", season: "winter", name: "Шапка и зелёный шарф", ref: SON_REFERENCES["son-winter"], noCap: true,
     en: `${NEWYEAR_OUTFIT}; bare furry legs and rounded bare feet, no shorts or sneakers`,
