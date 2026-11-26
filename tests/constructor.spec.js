@@ -732,6 +732,11 @@ for (const width of [1440, 390]) {
               art.width * (selected.length === 1 ? 0.5 : i === 0 ? 0.35 : 0.65),
             0,
           );
+          if (selected.length === 1)
+            expect(character.y + character.height / 2).toBeCloseTo(
+              preview.y + preview.height / 2,
+              0,
+            );
           expect(character.y).toBeGreaterThanOrEqual(preview.y);
           expect(character.y + character.height).toBeLessThanOrEqual(
             preview.y + preview.height + 1,

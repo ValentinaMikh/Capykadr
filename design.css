@@ -2092,3 +2092,7 @@ fieldset {
   left: var(--family-center);
   transform: translateX(-50%);
 }
+.family-art[data-count="1"] > div {
+  top: 53.111%;
+  transform: translate(-50%, -50%);
+}
