@@ -80,7 +80,8 @@ function build(state) {
   });
   if (multi) refs.push({ key: "lineup", file: C.LINEUP_REF, label: "Вся семья: эталон роста" });
   const newyear = chars.some(c => by(C.OUTFITS, c.outfit).season === "newyear");
-  refs.push({ ...(newyear ? C.NEWYEAR_REF : C.STYLE_REF) });
+  if (chars.some(c => isWinterOutfit(by(C.OUTFITS, c.outfit))))
+    refs.push({ ...(newyear ? C.NEWYEAR_REF : C.STYLE_REF) });
 
   const L = [];
   const mouthOpen = [];
@@ -208,7 +209,8 @@ function buildWhite(state) {
 /* ---------- новый сезонный эталон (T-поза) ---------- */
 function buildReference(outfitId) {
   const o = by(C.OUTFITS, outfitId), ch = C.CHARS[o.who], base = by(C.OUTFITS, `${o.who}-base`);
-  const refs = [{ key: base.id, file: base.ref, label: `${ch.name} · базовый` }, { ...(o.season === "newyear" ? C.NEWYEAR_REF : C.STYLE_REF) }];
+  const refs = [{ key: base.id, file: base.ref, label: `${ch.name} · базовый` }];
+  if (isWinterOutfit(o)) refs.push({ ...(o.season === "newyear" ? C.NEWYEAR_REF : C.STYLE_REF) });
   const p = [
     `Use the attached image as a strict character reference: capybara ${ch.en}. Preserve the character identity, heart-shaped nose, eyes with eyebrows${o.who === "mom" ? " and two eyelashes on each eye" : ""}, ears, paws with fingers and dark pads, fur color, relative family height and recognizable identity. Apply the new muzzle shape and original-proportion body instructions below and replace the outfit with the outfit described below.`,
     `Face shape: ${C.FACE_SHAPE}.`,
@@ -225,7 +227,7 @@ function buildReference(outfitId) {
     `Avoid: ${uniq([...C.NEG_BASE, ...clothingNegatives([{outfit:o.id}]), ...C.NEG_TEETH, ...C.NEG_TPOSE, ...ch.neg, ...o.neg]).join(", ")}.`
   ];
   return { prompt: p.join("\n"), refs,
-    instructions: ["Приложите вторым изображением новый референс стиля (для Нового года он задаёт и одежду).", `Приложите первой картинкой: эталон «${ch.name} · базовый» (кнопка «Скачать» ниже).`, "Вставьте промт и сгенерируйте.", "Удачный результат сохраните: он станет эталоном для всех поз в этой одежде. Админ загружает его в сервис."] };
+    instructions: [...(isWinterOutfit(o) ? ["Приложите вторым изображением новый референс стиля (для Нового года он задаёт и одежду)."] : []), `Приложите первой картинкой: эталон «${ch.name} · базовый» (кнопка «Скачать» ниже).`, "Вставьте промт и сгенерируйте.", "Удачный результат сохраните: он станет эталоном для всех поз в этой одежде. Админ загружает его в сервис."] };
 }
 
 function isWinterOutfit(outfit) {
@@ -244,7 +246,8 @@ function clothingNegatives(chars) {
 }
 
 function styleInstructions(refs) {
-  const index = refs.findIndex(r => ["style-reference", "newyear-outfit"].includes(r.key));
+  // Without winter clothing, the selected identity image also supplies the visual style.
+  const index = Math.max(0, refs.findIndex(r => ["style-reference", "newyear-outfit"].includes(r.key)));
   return `Visual style authority for rendering and materials: Image ${index+1}. Match its short fuzzy fur, tactile textiles, rounded paws, matte finish and lighting quality. The latest style image takes priority for surface rendering only, never for head size, head-to-body proportions, cheek volume or muzzle silhouette. For those, the original identity references and the explicit Face shape instructions above take priority. Do not copy inflated cheeks, a shortened snout or an enlarged head from a style image. Keep the chosen character identities and relative family heights. The outfit-specific material rules override the style image: never copy its winter yarn texture onto clothing assigned smooth fabric. Do not copy its waving pose, gaze, smiling expression, tangerine or background; use the selected pose and expression, and the outfit described for each character.`;
 }
 

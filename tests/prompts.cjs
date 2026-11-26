@@ -32,10 +32,13 @@ for (const outfit of C.OUTFITS) {
   assert.ok(!result.prompt.includes("boxy muzzle"));
   assert.ok(
     result.prompt.includes(
-      "Visual style authority for rendering and materials: Image 2",
+      `Visual style authority for rendering and materials: Image ${["winter", "newyear"].includes(outfit.season) ? 2 : 1}`,
     ),
   );
-  assert.equal(result.refs.length, 2);
+  assert.equal(
+    result.refs.length,
+    ["winter", "newyear"].includes(outfit.season) ? 2 : 1,
+  );
 }
 for (const whos of [
   ["dad"],
@@ -63,14 +66,18 @@ for (const whos of [
     assert.ok(result.prompt.includes(C.BODY_SHAPE));
     assert.ok(result.prompt.includes("latest style image takes priority"));
     assert.ok(result.prompt.includes("Do not copy its waving pose"));
-    assert.ok(result.refs.some((r) => r.file === C.STYLE_REF.file));
+    assert.equal(
+      result.refs.some((r) => r.file === C.STYLE_REF.file),
+      season === "newyear",
+    );
     if (season === "newyear")
       assert.ok(result.prompt.includes("thick individual yarn loops"));
     else assert.ok(result.prompt.includes("smooth lightweight cotton fabric"));
-    assert.ok(
+    assert.equal(
       result.refs.some((r) =>
         ["style-reference", "newyear-outfit"].includes(r.key),
       ),
+      season === "newyear",
     );
     assert.ok(
       result.prompt.includes("original identity-reference head-to-body ratio"),
@@ -311,4 +318,46 @@ assert.ok(
   B.build(state(["mom"], "winter")).prompt.includes(
     "plain red pleated skirt without stripes",
   ),
+);
+
+// Winter clothing must never be suggested as a style attachment for non-winter outfits.
+for (const whos of [
+  ["dad"],
+  ["mom"],
+  ["son"],
+  ["dad", "son"],
+  ["dad", "mom", "son"],
+]) {
+  for (const season of ["base", "spring", "summer", "autumn"]) {
+    for (const outputMode of ["scene", "neutral", "reference"]) {
+      const result = B.build({ ...state(whos, season), outputMode });
+      assert.ok(
+        !result.refs.some((r) => r.file === C.SON_REFERENCES["son-winter"]),
+      );
+      assert.ok(
+        !result.refs.some((r) =>
+          ["style-reference", "newyear-outfit"].includes(r.key),
+        ),
+      );
+      assert.ok(!result.prompt.includes("Image 0"));
+      assert.ok(
+        result.prompt.includes(
+          "Visual style authority for rendering and materials: Image 1",
+        ),
+      );
+      assert.equal(
+        result.refs.length,
+        whos.length +
+          (whos.length > 1 ? 1 : 0) +
+          (outputMode === "reference" ? 1 : 0),
+      );
+      if (outputMode === "reference")
+        assert.ok(
+          result.prompt.includes(`Pose source: Image ${result.refs.length}`),
+        );
+    }
+  }
+}
+console.log(
+  "Seasonal attachment checks passed: no winter son for non-winter outfits, all output modes and reference numbering.",
 );
