@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "playwright test",
+    "test": "node tests/prompts.cjs && playwright test",
     "test:syntax": "node --check app.js && node --check builder.js && node --check data.js"
   },
   "devDependencies": {

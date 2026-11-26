@@ -230,6 +230,7 @@
     "mom-base": "2cbd4.png",
     "son-base": "74fc8.png",
     lineup: "e1d62.png",
+    "newyear-outfit": "newyear-outfit.png",
   };
   const SEASONS = [
     { id: "spring", name: "Весна", wash: "4d9e4.svg", icon: "f5fba.svg" },
@@ -330,8 +331,9 @@
       summer: "meadow",
       autumn: "autumn",
       winter: "winter",
+      newyear: "newyear",
     }[id];
-    S.light = id === "winter" ? "winter" : "golden";
+    S.light = ["winter", "newyear"].includes(id) ? "winter" : "golden";
     fix();
   }
   function stepNav() {
@@ -351,6 +353,8 @@
     return `<aside class="examples"><h2>Примеры генераций</h2><div class="example-grid" tabindex="0" role="group" aria-label="Примеры генераций">${Array.from({ length: 6 }, (_, i) => (images[i] ? `<button type="button" class="example-button" data-example="${images[i]}" aria-label="Открыть пример: ${EXAMPLE_PHOTOS[images[i]].title}">${art(images[i], "example-image", EXAMPLE_PHOTOS[images[i]].title)}</button>` : art("268b2.png", "example-image"))).join("")}</div></aside>`;
   }
   function familyPreview() {
+    if (SEASON === "newyear")
+      return `<div class="family-preview newyear"><img class="newyear-outfit-preview" src="${ART}newyear-outfit.png" alt="Новогодний образ: красная шапка, свитер с белым зимним узором и зелёный шарф"><p class="newyear-outfit-caption">Одежда для выбранных персонажей</p></div>`;
     const selected = WHO.filter((w) => CAST.has(w));
     return `<div class="family-preview ${esc(SEASON)}"><div class="family-art" data-count="${selected.length}">${selected
       .map(
@@ -368,7 +372,7 @@
     if (STEP === 0) {
       h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${w === "son" ? "base-son" : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
     } else if (STEP === 1) {
-      h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" aria-checked="${SEASON === s.id}" ${s.id === "newyear" ? "disabled" : ""}>${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
+      h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" aria-checked="${SEASON === s.id}">${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
     } else if (STEP === 2) {
       h = `<div class="scene-grid">${SCENES.map((s) => `<button type="button" class="scene-choice" data-scene="${s.id}" aria-pressed="${SCENE === s.id}"><span class="scene-image">${art(s.id === "cafe" ? "914cd.png" : "268b2.png", "", s.name)}${SCENE === s.id ? `<span class="scene-check">${art("f4244.svg")}</span>` : ""}</span><span>${s.name}</span></button>`).join("")}${Array.from({ length: 4 }, () => '<div class="scene-empty" aria-hidden="true"></div>').join("")}</div>`;
     } else {
@@ -443,6 +447,7 @@
             summer: "meadow",
             autumn: "autumn",
             winter: "winter",
+            newyear: "newyear",
           }[SEASON] || "white";
       S.chars.forEach((c) => {
         c.pose = s.pose || "stand";
