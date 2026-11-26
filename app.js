@@ -368,6 +368,8 @@
   let promptResizeObserver;
   function renderAll() {
     const el = $("steps");
+    const stepChanged = el.dataset.motionStep !== String(STEP);
+    el.dataset.motionStep = String(STEP);
     let h = "";
     if (STEP === 0) {
       h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${w === "son" ? "base-son" : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
@@ -381,6 +383,7 @@
     }
     promptResizeObserver?.disconnect();
     el.innerHTML = h;
+    if (stepChanged) window.CapyMotion.reveal(el);
     const promptText = el.querySelector(".prompt-panel pre");
     if (promptText) {
       const updateScrollbar = () => {
@@ -579,6 +582,7 @@
       return;
     }
     toast("Промт скопирован");
+    window.CapyMotion.success($("copyBtn"));
     const st = clone(S);
     sb.from("prompt_history")
       .insert({ state: st, prompt: LAST.prompt })
@@ -845,7 +849,8 @@
   }
   async function loadGallery() {
     const el = $("gList");
-    el.innerHTML = '<div class="empty" role="status">Загружаем…</div>';
+    el.setAttribute("aria-busy", "true");
+    el.innerHTML = `<div class="gallery-loading" role="status"><span class="sr">Загружаем галерею…</span><div class="gallery-grid" aria-hidden="true">${'<div class="gallery-skeleton"></div>'.repeat(15)}</div></div>`;
     $("gWho").innerHTML = [
       ["all", "Все герои"],
       ...WHO.map((w) => [w, C.CHARS[w].name]),
@@ -865,6 +870,7 @@
       sb.from("profiles").select("id,name,email"),
     ]);
     if (pubs.error) {
+      el.setAttribute("aria-busy", "false");
       el.innerHTML = `<div class="empty" role="alert">Не удалось загрузить: ${esc(pubs.error.message)}</div>`;
       $("galleryPagination").innerHTML = "";
       return;
@@ -908,6 +914,10 @@
       (GAL.page - 1) * GALLERY_PAGE_SIZE,
       GAL.page * GALLERY_PAGE_SIZE,
     );
+    const gallerySignature = pageItems.map((p) => p.id).join("|");
+    const galleryChanged = $("gList").dataset.items !== gallerySignature;
+    $("gList").dataset.items = gallerySignature;
+    $("gList").setAttribute("aria-busy", "false");
     $("gList").innerHTML = pageItems.length
       ? `<div class="gallery-grid">${pageItems
           .map(
@@ -920,6 +930,7 @@
           )
           .join("")}</div>`
       : `<div class="empty">${GAL.sort === "mine" ? "Вы ещё ничего не публиковали. Оцените удачный кадр в «Мои промты» и нажмите «Опубликовать»." : "Пока пусто. Станьте первым, кто поделится кадром."}</div>`;
+    if (galleryChanged) window.CapyMotion.reveal($("gList"));
     const numbers =
       pages <= 5
         ? Array.from({ length: pages }, (_, i) => i + 1)
@@ -1047,10 +1058,14 @@
             logEvent("apply_gallery", { pub: publication.id });
           }
           if (action === "copy") {
-            if (await copyText(publication.prompt)) toast("Промт скопирован");
-            else toast("Не удалось скопировать промт. Выделите текст вручную.");
+            if (await copyText(publication.prompt)) {
+              toast("Промт скопирован");
+              window.CapyMotion.success(button);
+            } else
+              toast("Не удалось скопировать промт. Выделите текст вручную.");
           }
           if (action === "like") {
+            const wasLiked = button.getAttribute("aria-pressed") === "true";
             button.disabled = true;
             await togglePhotoLike(publication);
             button.setAttribute(
@@ -1067,6 +1082,8 @@
                 ? "34c49.svg"
                 : "6cefc.svg");
             button.disabled = false;
+            if (!wasLiked && button.getAttribute("aria-pressed") === "true")
+              window.CapyMotion.like(button);
           }
         });
       },

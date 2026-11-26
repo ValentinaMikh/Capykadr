@@ -11,7 +11,12 @@ async function mockAccount(page, signedIn = true, gallery = {}) {
       const query = (data = []) => {
         const q = {
           then: (resolve) =>
-            Promise.resolve({ data, error: null }).then(resolve),
+            (gallery.delay
+              ? new Promise((done) =>
+                  setTimeout(() => done({ data, error: null }), gallery.delay),
+                )
+              : Promise.resolve({ data, error: null })
+            ).then(resolve),
         };
         const proxy = new Proxy(q, {
           get: (target, key) => (key === "then" ? target.then : () => proxy),
@@ -46,6 +51,10 @@ async function mockAccount(page, signedIn = true, gallery = {}) {
               delete: () => query(),
               update: () => query(),
               insert: (row) => {
+                if (gallery.likeError && name === "publication_likes")
+                  return Promise.resolve({
+                    error: { message: "Test save failure" },
+                  });
                 window.__inserts.push({ name, row });
                 return query();
               },
@@ -101,6 +110,7 @@ async function capture(page, testInfo, name) {
   ).toBe(true);
   await assetsLoad(page);
   await page.screenshot({
+    animations: "disabled",
     path: testInfo.outputPath(name + ".png"),
     fullPage: true,
   });
@@ -352,6 +362,7 @@ test("example photo opens an accessible preview with copy, favourite and apply",
   );
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({
+    animations: "disabled",
     path: testInfo.outputPath("example-modal.png"),
     fullPage: true,
   });
@@ -458,6 +469,7 @@ test("gallery grid, pagination, filters and publication modal retain their actio
   await expect(first.locator(".gallery-likes")).toHaveText("15");
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({
+    animations: "disabled",
     path: testInfo.outputPath("gallery.png"),
     fullPage: true,
   });
@@ -469,6 +481,7 @@ test("gallery grid, pagination, filters and publication modal retain their actio
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveCSS("background-color", "rgb(0, 0, 0)");
   await page.screenshot({
+    animations: "disabled",
     path: testInfo.outputPath("gallery-modal.png"),
     fullPage: true,
   });
@@ -525,6 +538,7 @@ for (const viewport of [
     expect(image.width).toBeCloseTo(image.height, 0);
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({
+      animations: "disabled",
       path: testInfo.outputPath("photo-modal-" + viewport.width + ".png"),
       fullPage: true,
     });
@@ -591,6 +605,7 @@ for (const viewport of [
     expect(after.x).toBeCloseTo(before.x, 1);
     expect(after.y).toBeCloseTo(before.y, 1);
     await page.screenshot({
+      animations: "disabled",
       path: testInfo.outputPath("fixed-dock-" + viewport.width + ".png"),
     });
     await page.locator("#chooseBtn").click();
@@ -658,6 +673,7 @@ for (const viewport of [
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBe(viewport.width);
     await page.screenshot({
+      animations: "disabled",
       path: testInfo.outputPath("responsive-prompt-" + viewport.width + ".png"),
     });
     const pre = page.locator(".prompt-panel pre");
@@ -785,4 +801,98 @@ test("New Year uses the supplied outfit reference and survives reload", async ({
   await page.locator('[data-step="3"]').click();
   await expect(prompt).toContainText("sage-green knitted scarf");
   await capture(page, testInfo, "newyear-prompt");
+});
+
+test("playful loading, hover and confirmed like effects clean up without changing actions", async ({
+  page,
+}, testInfo) => {
+  await mockAccount(page, true, { ...galleryFixture(), delay: 120 });
+  await page.goto("/#gallery");
+  await expect(page.locator(".gallery-skeleton")).toHaveCount(15);
+  await expect(page.locator("#gList")).toHaveAttribute("aria-busy", "true");
+  await expect(page.locator(".gallery-card")).toHaveCount(15);
+  await expect(page.locator("#gList")).toHaveAttribute("aria-busy", "false");
+  const card = page.locator(".gallery-card").first();
+  await card.hover();
+  await expect
+    .poll(() =>
+      card.evaluate((el) =>
+        parseFloat(getComputedStyle(el, "::after").opacity),
+      ),
+    )
+    .toBeGreaterThan(0.9);
+  await card.click();
+  await page.locator(".photo-like").click();
+  await expect(page.locator(".photo-like")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(page.locator(".ui-heart")).toHaveCount(6);
+  await expect(page.locator("#uiEffects")).toHaveAttribute(
+    "aria-hidden",
+    "true",
+  );
+  expect(
+    await page
+      .locator("#uiEffects")
+      .evaluate((el) => getComputedStyle(el).pointerEvents),
+  ).toBe("none");
+  await page.waitForTimeout(100);
+  await page.screenshot({
+    path: testInfo.outputPath("like-hearts.png"),
+    animations: "allow",
+  });
+  await expect(page.locator(".ui-heart")).toHaveCount(0);
+  await page.locator(".photo-like").click();
+  await expect(page.locator(".photo-like")).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+  await expect(page.locator(".ui-heart")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(card).toBeFocused();
+});
+test("reduced motion keeps likes and copying usable without particles or animation", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockAccount(page, true, galleryFixture());
+  await page.goto("/#gallery");
+  const card = page.locator(".gallery-card").first();
+  await card.hover();
+  expect(
+    await card.evaluate((el) => getComputedStyle(el, "::after").animationName),
+  ).toBe("none");
+  await card.click();
+  await page.locator(".photo-like").click();
+  await expect(page.locator(".photo-like")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(page.locator(".ui-heart")).toHaveCount(0);
+  await expect(page.locator(".ui-press-ring")).toHaveCount(0);
+  await page.evaluate(() => {
+    navigator.clipboard.writeText = async (value) => (window.__copied = value);
+  });
+  await page.locator('[data-photo-action="copy"]').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__copied))
+    .toContain("capybara");
+});
+test("a rejected like does not celebrate or change the saved state", async ({
+  page,
+}) => {
+  await mockAccount(page, true, { ...galleryFixture(), likeError: true });
+  await page.goto("/#gallery");
+  await page.locator(".gallery-card").first().click();
+  await page.locator(".photo-like").click();
+  await expect(page.locator("#toast")).toHaveText(
+    "Не удалось сохранить отметку",
+  );
+  await expect(page.locator(".photo-like")).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+  await expect(page.locator(".photo-like")).toBeEnabled();
+  await expect(page.locator(".ui-heart")).toHaveCount(0);
 });
