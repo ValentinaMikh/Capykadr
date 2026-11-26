@@ -46,7 +46,9 @@ async function mockAccount(page, signedIn = true, gallery = {}) {
                       ? gallery.publications || []
                       : name === "publication_likes"
                         ? gallery.likes || []
-                        : [],
+                        : name === "ref_images"
+                          ? gallery.refImages || []
+                          : [],
                 ),
               delete: () => query(),
               update: () => query(),
@@ -1024,3 +1026,90 @@ for (const width of [1440, 420])
     await page.getByLabel("На белом фоне", { exact: true }).uncheck();
     await expect(page.locator(".scene-grid")).toBeVisible();
   });
+
+for (const width of [1440, 390])
+  test(`new son references display and download unchanged at ${width}px despite legacy uploads`, async ({
+    page,
+  }, testInfo) => {
+    const cases = [
+      ["spring", "base"],
+      ["summer", "summer"],
+      ["autumn", "autumn"],
+      ["winter", "winter"],
+      ["newyear", "winter"],
+    ];
+    await page.setViewportSize({ width, height: 1080 });
+    await mockAccount(page, true, {
+      refImages: ["base", "summer", "autumn", "winter", "newyear"].map(
+        (season) => ({
+          id: "son-" + season,
+          image_path: "assets/figma/268b2.png",
+          updated_at: "2026-11-25T00:00:00Z",
+        }),
+      ),
+    });
+    await page.goto("/");
+    await expect(
+      page.locator('[data-cast="son"] .portrait img'),
+    ).toHaveAttribute("src", /son-base-v3.png$/);
+    await page.locator('[data-cast="son"]').click();
+    await page.locator("#chooseBtn").click();
+    for (const [season, file] of cases) {
+      await page.locator('[data-step="1"]').click();
+      await page.locator(`[data-season="${season}"]`).click();
+      if (season !== "newyear") {
+        await expect(page.locator(".family-son img")).toHaveAttribute(
+          "src",
+          new RegExp("son-" + file + "-v3.png$"),
+        );
+        await expect(page.locator(".family-son img")).toHaveCSS(
+          "object-fit",
+          "contain",
+        );
+      } else
+        await expect(page.locator(".newyear-outfit-preview")).toHaveAttribute(
+          "src",
+          /son-winter-v3.png$/,
+        );
+      await capture(page, testInfo, `son-${season}-${width}`);
+      await page.locator('[data-step="3"]').click();
+      await expect(page.locator('[data-dl="0"] > img')).toHaveAttribute(
+        "src",
+        new RegExp("son-" + file + "-v3.png$"),
+      );
+      const downloaded = page.waitForEvent("download");
+      await page.locator('[data-dl="0"]').click();
+      const stream = await (await downloaded).createReadStream();
+      const chunks = [];
+      for await (const chunk of stream) chunks.push(chunk);
+      const hash = (bytes) =>
+        require("node:crypto").createHash("sha256").update(bytes).digest("hex");
+      const expected = require("node:fs").readFileSync(
+        require("node:path").join(
+          __dirname,
+          "../assets/son/son-" + file + "-v3.png",
+        ),
+      );
+      expect(hash(Buffer.concat(chunks))).toBe(hash(expected));
+    }
+  });
+test("later administrator uploads can replace the bundled son reference", async ({
+  page,
+}) => {
+  await mockAccount(page, true, {
+    refImages: [
+      {
+        id: "son-base",
+        image_path: "assets/figma/268b2.png",
+        updated_at: "2099-01-01T00:00:00Z",
+      },
+    ],
+  });
+  await page.goto("/");
+  await page.locator('[data-cast="son"]').click();
+  await page.locator('[data-step="3"]').click();
+  await expect(page.locator('[data-dl="0"] > img')).toHaveAttribute(
+    "src",
+    "assets/figma/268b2.png",
+  );
+});
