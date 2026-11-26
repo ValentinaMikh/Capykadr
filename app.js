@@ -429,7 +429,7 @@
     $("builderActions").innerHTML =
       STEP === 3
         ? `<button type="button" class="choose primary" id="copyBtn" ${LAST.issues.length ? "disabled" : ""}>Копировать промт ${art("eb5dc.svg")}</button>`
-        : `${STEP === 2 ? '<button type="button" class="choose secondary" id="describeAction">Описать действие</button>' : ""}<button type="button" class="choose primary" id="chooseBtn" ${(STEP === 0 && !CAST.size) || (STEP === 1 && !SEASON) || (STEP === 2 && S.outputMode === "scene" && !SCENE) ? "disabled" : ""}>Выбрать</button>`;
+        : `${STEP === 2 && S.outputMode === "scene" ? '<button type="button" class="choose secondary" id="describeAction">Описать действие</button>' : ""}<button type="button" class="choose primary" id="chooseBtn" ${(STEP === 0 && !CAST.size) || (STEP === 1 && !SEASON) || (STEP === 2 && S.outputMode === "scene" && !SCENE) ? "disabled" : ""}>Выбрать</button>`;
     $("builderNav").innerHTML = stepNav();
   }
   function renderOut() {

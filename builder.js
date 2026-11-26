@@ -196,7 +196,7 @@ function buildWhite(state) {
     lines.push("Place the selected characters side by side with clear separation and no overlap, preserving their relative heights.");
   } else lines.push("Centered composition with one character.");
   lines.push("Background: solid pure white (#FFFFFF), seamless and evenly lit; no scenery, no gradient, no floor texture, no decorations, no props. Only a very soft neutral contact shadow is allowed.");
-  lines.push(`Frame: ${frame.en}; show the complete body, headwear, paws and feet without cropping. Straight-on undistorted camera at chest height; the specified body orientation or source pose takes priority.`);
+  lines.push(`Frame: ${frame.en}; show the complete body, headwear, paws and feet without cropping. ${sourcePose ? "Match the camera angle and viewing direction of the source image while preserving its pose." : "Straight-on undistorted camera at chest height; keep the specified body orientation."}`);
   lines.push(`Lighting: soft even neutral studio lighting. Style: ${C.STYLE}. High detail, character reference quality.`);
   lines.push(`Avoid: ${uniq([...C.NEG_BASE,...(sourcePose ? [] : C.NEG_TEETH),...(chars.length>1 ? C.NEG_GROUP : []),"colored background","background scenery","background gradient","floor texture","held props",...(sourcePose ? [] : ["action pose","gestures","T-pose"])]).join(", ")}.`);
   return { ...base, prompt:lines.join("\n\n"), refs, instructions:instructions(refs,frame,chars.length>1) };

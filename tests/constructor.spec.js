@@ -963,6 +963,7 @@ for (const width of [1440, 420])
     await page.locator("#chooseBtn").click();
     await page.getByLabel("На белом фоне", { exact: true }).check();
     await expect(page.locator(".scene-grid")).toHaveCount(0);
+    await expect(page.locator("#describeAction")).toHaveCount(0);
     await page.locator("#whiteTurn").selectOption("left");
     await page.locator("#whiteGaze").selectOption("up");
     await capture(page, testInfo, "white-controls-" + width);
