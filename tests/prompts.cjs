@@ -30,6 +30,8 @@ for (const outfit of C.OUTFITS) {
   assert.ok(result.prompt.includes(C.FACE_SHAPE), outfit.id);
   assert.ok(result.prompt.includes(C.BODY_SHAPE), outfit.id);
   assert.ok(!result.prompt.includes("boxy muzzle"));
+  assert.ok(result.prompt.includes("Visual style authority: Image 2"));
+  assert.equal(result.refs.length, 2);
 }
 for (const whos of [
   ["dad"],
@@ -47,7 +49,16 @@ for (const whos of [
       result.prompt.includes("fully rounded lower corners and a curved chin"),
     );
     assert.ok(result.prompt.includes(C.BODY_SHAPE));
-    assert.ok(result.prompt.includes("5-8%"));
+    assert.ok(result.prompt.includes("latest style image takes priority"));
+    assert.ok(result.prompt.includes("Do not copy its waving pose"));
+    assert.ok(result.refs.some((r) => r.file === "capybara-style-v2.png"));
+    assert.ok(result.prompt.includes("thick individual yarn loops"));
+    assert.ok(
+      result.refs.some((r) =>
+        ["style-reference", "newyear-outfit"].includes(r.key),
+      ),
+    );
+    assert.ok(result.prompt.includes("compact toy-like proportions"));
     assert.ok(!result.prompt.includes("wide chunky almost rectangular torso"));
     assert.ok(!result.prompt.includes("preserve body proportions"));
     assert.ok(!result.prompt.includes("Keep exactly the same face"));
@@ -71,7 +82,7 @@ for (const whos of [
           ),
         );
       assert.equal(result.warnings.length, 0);
-      assert.ok(fs.statSync("assets/figma/newyear-outfit.png").size > 0);
+      assert.ok(fs.statSync("assets/figma/capybara-style-v2.png").size > 0);
     }
   }
 }
@@ -80,7 +91,9 @@ for (const who of ["dad", "mom", "son"]) {
   assert.equal(reference.refs.length, 2);
   assert.equal(reference.refs[1].key, "newyear-outfit");
   assert.ok(
-    reference.prompt.includes("Image 2 is the holiday outfit reference only"),
+    reference.prompt.includes(
+      "Image 2 is the visual style and holiday outfit reference",
+    ),
   );
 }
 console.log(

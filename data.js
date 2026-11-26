@@ -11,12 +11,12 @@ const PAL = {
 };
 
 /* ---------- внешность (с правками) ---------- */
-const EYES = "small round eyes with a warm brown iris, a black pupil, a thin white ring around the iris and a glossy highlight, set high on the sides of the head; a short soft darker-brown eyebrow above each eye";
+const EYES = "small expressive dark brown eyes; when open, a subtle warm brown iris and a tiny glossy catchlight without a graphic white ring; when the selected expression closes the eyes, soft curved smiling eyelids; short curved eyebrows";
 const PAWS = "medium-length arms ending in small rounded paws with four short chubby fingers, each finger tip with a small darker brown rounded pad";
 const FEET = "short legs, small flat rounded feet with short toes and small darker brown toe pads";
 
-const FACE_SHAPE = "a softly rounded head of the same size as the identity reference; specifically round the projecting darker-brown nose-and-mouth muzzle pad: its front outline should be a soft vertical oval, with gently convex sides, fully rounded lower corners and a curved chin; the front surface should be softly domed and blend smoothly into the cheeks, while retaining the recognizable capybara snout and small dark brown heart-shaped nose";
-const BODY_SHAPE = "a slightly slimmer build than the identity reference: reduce torso width and belly volume subtly, by about 5-8%, with a gently tapered chest and waist and a small soft belly; keep the plush toy-like softness, original head size, limb lengths and each character's relative height; dad remains broader than mom and the son remains childlike";
+const FACE_SHAPE = "a softly rounded head with soft rounded cheeks and a short, broad projecting darker-brown nose-and-mouth muzzle pad; its front is a soft vertical oval with gently convex sides, fully rounded lower corners and a curved chin; a softly domed front surface and seamless plush transitions, a small glossy dark chocolate heart-shaped nose, small rounded ears with pink interiors; match the latest visual style reference rather than the older rectangular model";
+const BODY_SHAPE = "compact toy-like proportions matching the latest visual style reference: a large rounded head, a short gently tapered torso with a modest soft belly, short sturdy legs and rounded paws; lightly built rather than bulky, retaining plush softness; keep dad, mom and son recognizable and preserve their relative family heights, but use the new reference for the head-to-body ratio rather than copying the older elongated proportions";
 
 const BODY_TURNS = [
   { id: "front", name: "Анфас", en: "body and head facing straight toward the viewer" },
@@ -35,30 +35,30 @@ const GAZES = [
   { id: "down", name: "Вниз", en: "eyes looking slightly downward" }
 ];
 
-const BASE_LOOK = `3D stylized mascot character, anthropomorphic capybara, faithful 3D adaptation of a flat 2D vector cartoon character.
-Head: ${FACE_SHAPE}. Small dark brown heart-shaped glossy nose on the top front edge of the muzzle. ${EYES}. Small ears slightly pointed at the tips, pink inner ears. No visible neck. No tail.
+const BASE_LOOK = `3D stylized mascot character, anthropomorphic capybara, a polished plush 3D mascot following the latest visual style reference.
+Head: ${FACE_SHAPE}. Small dark brown heart-shaped glossy nose on the top front edge of the muzzle. ${EYES}. Small rounded ears with pink interiors. No visible neck. No tail.
 Body: ${BODY_SHAPE}, ${PAWS}, ${FEET}.
 Fur: short velvety plush-like fur, warm caramel-orange color (${PAL.fur}), darker chocolate-reddish brown patch on the front of the muzzle (${PAL.muzzle}), paws and feet slightly darker orange-brown.
-Style: soft toy-like look of modern family 3D animation, rounded shapes, clean simple surfaces, smooth matte materials, subtle subsurface scattering on ears and nose. High detail.`;
+Style: polished plush 3D mascot, compact rounded forms, finely visible short fur fibers and tactile fabric textures, matte fur and a softly glossy nose. High detail.`;
 
-const STYLE = "soft toy-like modern family 3D animation, short velvety plush fur, rounded shapes, smooth matte materials, subtle subsurface scattering on ears and nose";
+const STYLE = "polished plush 3D capybara mascot matching the latest visual style reference, warm caramel-orange fur with short dense finely visible fuzzy fibers, rounded sculpted forms and soft cheeks, matte soft-touch surfaces contrasted with a small glossy chocolate nose, soft studio-quality lighting and gentle ambient occlusion; on knitted clothing show thick individual yarn loops, ribbed cuffs, crisp Fair Isle snowflakes and zigzags, and braided cable stitches with long fringe on scarves; keep other clothing materials appropriate to the selected outfit, not plastic or flat vector art";
 
 /* ---------- персонажи ---------- */
 const CHARS = {
   dad: { name: "Папа", en: "dad", h: 100, order: 1,
     trait: "невозмутимый, надёжный",
     face: `${EYES}`,
-    body: "about 3 heads tall, slightly broader shoulders than mom, a gently tapered soft torso with a modest rounded belly, the largest softly rounded oval muzzle in the family",
+    body: "an adult with compact plush proportions, slightly broader shoulders than mom, a gently tapered soft torso with a modest rounded belly, the largest softly rounded oval muzzle in the family",
     neg: [] },
   mom: { name: "Мама", en: "mom", h: 88, order: 2,
     trait: "тёплая, смеётся от души",
     face: `${EYES}, plus two small curved black eyelashes at the outer corner of each eye`,
-    body: "about 3 heads tall, slightly shorter and about 1.3 times slimmer than dad, a light gently tapered torso with a modest soft belly, oval muzzle slightly shorter and softer than dad's, slender legs with darker lower legs and feet",
+    body: "an adult with compact plush proportions, slightly shorter and about 1.3 times slimmer than dad, a light gently tapered torso with a modest soft belly, oval muzzle slightly shorter and softer than dad's, slender legs with darker lower legs and feet",
     neg: ["long eyelashes", "makeup", "lipstick"] },
   son: { name: "Сын", en: "son", h: 67, order: 3,
     trait: "любопытный, подвижный",
     face: `${EYES}`,
-    body: "about 2.5 heads tall, a young kid capybara, head about 40% of total height, a compact lightly built torso with a small soft belly, muzzle shorter and rounder than dad's",
+    body: "a young kid capybara with a proportionally larger rounded head and short legs, a compact lightly built torso with a small soft belly, muzzle shorter and rounder than dad's",
     neg: ["skateboard", "backwards cap", "tilted cap"] }
 };
 
@@ -68,8 +68,10 @@ const SEASONS = [
   ["base", "Базовый"], ["spring", "Весна"], ["summer", "Лето"], ["autumn", "Осень"], ["winter", "Зима"], ["newyear", "Новый год"]
 ];
 
-const NEWYEAR_OUTFIT = "a red knitted beanie with a folded ribbed brim and white zigzag bands; a cozy red knitted Fair Isle sweater with white snowflakes and white zigzag bands across the chest and sleeves; a chunky muted sage-green knitted scarf with a subtle herringbone texture wrapped around the neck, matching the attached holiday outfit reference";
-const NEWYEAR_REF = { key: "newyear-outfit", file: "newyear-outfit.png", label: "Новый год · референс одежды" };
+const NEWYEAR_OUTFIT = "a red knitted beanie with a folded ribbed brim and white zigzag bands; a cozy red knitted Fair Isle sweater with white snowflakes and white zigzag bands across the chest and sleeves; a chunky olive/sage-green knitted scarf with thick braided cable stitches and long fringed ends wrapped around the neck, matching the attached holiday outfit reference";
+const NEWYEAR_REF = { key: "newyear-outfit", file: "capybara-style-v2.png", label: "Новый стиль и новогодний образ" };
+
+const STYLE_REF = { key: "style-reference", file: "capybara-style-v2.png", label: "Новый стиль капибар" };
 
 const OUTFITS = [
   /* базовые */
@@ -131,14 +133,14 @@ const OUTFITS = [
     keep: "sweater, beanie, scarf", neg: ["baseball cap", "T-shirt", "shorts", "sneakers", "trousers", "tilted beanie"] },
   /* Новый год: одежда по пользовательскому фотореференсу. */
   { id: "dad-newyear", who: "dad", season: "newyear", name: "Красная шапка, узорный свитер и зелёный шарф", ref: null,
-    en: `${NEWYEAR_OUTFIT}; keep dad's beige chino trousers with rolled-up cuffs and bare feet from his identity reference`,
-    keep: "beanie, patterned sweater, green scarf, trousers", neg: ["yellow scarf", "baseball cap", "striped sweater"] },
+    en: `${NEWYEAR_OUTFIT}; the sweater covers the hips; bare furry legs and rounded bare feet, no trousers, matching the latest holiday reference`,
+    keep: "beanie, patterned sweater, fringed green scarf", neg: ["yellow scarf", "baseball cap", "striped sweater", "trousers", "shoes"] },
   { id: "mom-newyear", who: "mom", season: "newyear", name: "Красная шапка, узорный свитер и зелёный шарф", ref: null,
-    en: `${NEWYEAR_OUTFIT}; keep mom's red-and-off-white striped pleated skirt and bare feet from her identity reference`,
-    keep: "beanie, patterned sweater, green scarf, skirt", neg: ["earmuffs", "beret", "trousers", "plain sweater"] },
+    en: `${NEWYEAR_OUTFIT}; the sweater covers the hips; bare furry legs and rounded bare feet, no skirt or trousers, matching the latest holiday reference`,
+    keep: "beanie, patterned sweater, fringed green scarf", neg: ["earmuffs", "beret", "skirt", "trousers", "plain sweater", "shoes"] },
   { id: "son-newyear", who: "son", season: "newyear", name: "Красная шапка, узорный свитер и зелёный шарф", ref: null, noCap: true,
-    en: `${NEWYEAR_OUTFIT}; keep son's red knee-length shorts and green high-top sneakers from his identity reference`,
-    keep: "beanie, patterned sweater, green scarf, shorts, sneakers", neg: ["baseball cap", "yellow cap", "T-shirt", "trousers"] }
+    en: `${NEWYEAR_OUTFIT}; the sweater covers the hips; bare furry legs and rounded bare feet, no shorts or sneakers, matching the latest holiday reference`,
+    keep: "beanie, patterned sweater, fringed green scarf", neg: ["baseball cap", "yellow cap", "T-shirt", "trousers", "shorts", "sneakers"] }
 
 ];
 
@@ -299,13 +301,13 @@ const LINEUP_REF = "Rectangle-46.jpg";
 
 const CHECKLIST = [
   "Корпус чуть стройнее эталона; размер головы, длина лап и относительный рост сохранены",
-  "Овальная выступающая часть мордочки с округлым подбородком, нос-сердечко, карие глаза с белым ободком и бровью",
+  "Овальная выступающая часть мордочки с округлым подбородком, нос-сердечко, маленькие выразительные карие глаза и мягкие брови",
   "Лапы с пальцами и тёмными подушечками",
   "Одежда не поменялась и не потерялась",
   "Зубы видны только при открытом рте",
   "Рост совпадает с семьёй: мама ≈ 88%, сын ≈ 67% от папы"
 ];
 
-return { PAL, FACE_SHAPE, BODY_SHAPE, BODY_TURNS, GAZES, NEWYEAR_REF, BASE_LOOK, STYLE, CHARS, SEASONS, OUTFITS, CAM, POSES, EMOTIONS, DEFAULT_EMO, OPEN_DEFAULT_EMO,
+return { PAL, FACE_SHAPE, BODY_SHAPE, BODY_TURNS, GAZES, NEWYEAR_REF, STYLE_REF, BASE_LOOK, STYLE, CHARS, SEASONS, OUTFITS, CAM, POSES, EMOTIONS, DEFAULT_EMO, OPEN_DEFAULT_EMO,
   LOCATIONS, LIGHTS, FRAMES, CAMERAS, TEXTZONE, ACTIONS, NEG_BASE, NEG_TEETH, NEG_GROUP, NEG_TPOSE, LINEUP_REF, CHECKLIST };
 })();
