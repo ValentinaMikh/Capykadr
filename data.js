@@ -69,25 +69,38 @@ const SEASONS = [
 ];
 
 const NEWYEAR_OUTFIT = "a red knitted beanie with a folded ribbed brim and white zigzag bands; a cozy red knitted Fair Isle sweater with white snowflakes and white zigzag bands across the chest and sleeves; a chunky olive/sage-green knitted scarf with thick braided cable stitches and long fringed ends wrapped around the neck, matching the attached holiday outfit reference";
-const NEWYEAR_REF = { key: "newyear-outfit", file: "capybara-style-v2.png", label: "Новый стиль и новогодний образ" };
+const NEWYEAR_REF = { key: "newyear-outfit", file: "../v2/son-winter.png", label: "Новый стиль и новогодний образ" };
 
-const STYLE_REF = { key: "style-reference", file: "capybara-style-v2.png", label: "Новый стиль капибар" };
+const STYLE_REF = { key: "style-reference", file: "../v2/son-winter.png", label: "Новый стиль капибар" };
 
 const SON_REFERENCE_REVISION = "2026-11-26T08:37:04Z";
 const SON_REFERENCES = {
   "son-base": "../son/son-base-v3.png",
-  "son-summer": "../son/son-summer-v3.png",
-  "son-autumn": "../son/son-autumn-v3.png",
-  "son-winter": "../son/son-winter-v3.png",
-  "son-newyear": "../son/son-winter-v3.png"
+  "son-summer": "../v2/son-summer.png",
+  "son-autumn": "../v2/son-autumn.png",
+  "son-winter": "../v2/son-winter.png",
+  "son-newyear": "../v2/son-winter.png"
 };
+
+// Only version 2 uses the replacement artwork; the legacy preset remains frozen.
+const REFERENCE_REVISION = "2026-11-26T11:59:25Z";
+const BUNDLED_REFERENCES = {
+  ...SON_REFERENCES,
+  "dad-base": "../v2/dad-spring.png", "mom-base": "../v2/mom-spring.png",
+  "dad-summer": "../v2/dad-summer.png", "mom-summer": "../v2/mom-summer.png",
+  "dad-autumn": "../v2/dad-autumn.png", "mom-autumn": "../v2/mom-autumn.png",
+  "dad-winter": "../v2/dad-winter.png", "mom-winter": "../v2/mom-winter.png",
+  "style-reference": "../v2/son-winter.png", "newyear-outfit": "../v2/son-winter.png"
+};
+const REFERENCE_REVISIONS = Object.fromEntries(Object.keys(BUNDLED_REFERENCES).map(key =>
+  [key, key === "son-base" ? SON_REFERENCE_REVISION : REFERENCE_REVISION]));
 
 const OUTFITS = [
   /* базовые */
-  { id: "dad-base", who: "dad", season: "base", name: "Лонгслив в полоску и брюки", ref: "Rectangle-8.jpg",
+  { id: "dad-base", who: "dad", season: "base", name: "Лонгслив в полоску и брюки", ref: BUNDLED_REFERENCES["dad-base"],
     en: `red smooth cotton long-sleeve pullover (${PAL.red}) with wide horizontal off-white stripes (${PAL.offwhite}), smooth folded neckline and cuffs without visible ribbing, covering the hips; loose straight beige chino trousers (${PAL.beige}) with rolled-up cuffs at the ankles and two back patch pockets; barefoot`,
     keep: "cotton pullover, trousers", neg: [] },
-  { id: "mom-base", who: "mom", season: "base", name: "Лонгслив и юбка в полоску", ref: "Rectangle-24.jpg",
+  { id: "mom-base", who: "mom", season: "base", name: "Лонгслив и юбка в полоску", ref: BUNDLED_REFERENCES["mom-base"],
     en: `plain red smooth cotton long-sleeve pullover (${PAL.red}) without stripes ending at the hips, short pleated A-line skirt with horizontal red and off-white stripes (${PAL.offwhite}) and a thin light pink trim at the hem, ending above the knees; barefoot`,
     keep: "cotton pullover, skirt", neg: ["trousers", "striped sweater"] },
   { id: "son-base", who: "son", season: "base", name: "Кепка с клевером, футболка, шорты, кеды", ref: SON_REFERENCES["son-base"],
@@ -106,10 +119,10 @@ const OUTFITS = [
     keep: "cap, windbreaker, T-shirt, shorts, sneakers", neg: ["sweater", "trousers", "barefoot"] },
 
   /* лето */
-  { id: "dad-summer", who: "dad", season: "summer", name: "Футболка в полоску и жёлтые очки", ref: "Rectangle-67.jpg",
+  { id: "dad-summer", who: "dad", season: "summer", name: "Футболка в полоску и жёлтые очки", ref: BUNDLED_REFERENCES["dad-summer"],
     en: `loose short-sleeve smooth cotton T-shirt with wide horizontal red (${PAL.red}) and off-white (${PAL.offwhite}) stripes covering the hips; yellow sunglasses (${PAL.yellow}) with rounded rectangular frames and dark green tinted lenses on top of the muzzle in front of the eyes; no trousers, bare legs, barefoot`,
     keep: "T-shirt, sunglasses", neg: ["trousers", "chinos", "shorts", "sweater", "black sunglasses"] },
-  { id: "mom-summer", who: "mom", season: "summer", name: "Сарафан и соломенная шляпа", ref: "Rectangle-63.jpg",
+  { id: "mom-summer", who: "mom", season: "summer", name: "Сарафан и соломенная шляпа", ref: BUNDLED_REFERENCES["mom-summer"],
     en: `sleeveless lightweight smooth cotton sundress with a red-and-off-white striped fitted bodice and a light flared red skirt with wide off-white stripes near the hem, ending just below the knees; straw boater hat (${PAL.beige}) with a flat crown, wide flat brim and red band, sitting between the ears; barefoot`,
     keep: "sundress, straw hat", neg: ["trousers", "sweater", "swimsuit", "floppy sun hat"] },
   { id: "son-summer", who: "son", season: "summer", name: "Футболка в полоску", ref: SON_REFERENCES["son-summer"], noCap: true,
@@ -117,10 +130,10 @@ const OUTFITS = [
     keep: "T-shirt", neg: ["baseball cap", "shorts", "sneakers", "sweater", "trousers", "sunglasses"] },
 
   /* осень — черновики */
-  { id: "dad-autumn", who: "dad", season: "autumn", name: "Лонгслив, брюки и жёлтый шарф", ref: null, draft: true,
+  { id: "dad-autumn", who: "dad", season: "autumn", name: "Лонгслив, брюки и жёлтый шарф", ref: BUNDLED_REFERENCES["dad-autumn"],
     en: `the red-and-off-white striped smooth cotton long-sleeve pullover and beige chino trousers with rolled-up cuffs, plus a long soft yellow lightweight woven cotton scarf with a smooth flat weave (${PAL.yellow}) wrapped once around the neck with one end hanging down the chest; barefoot`,
     keep: "cotton pullover, trousers, scarf", neg: ["hat", "mittens"] },
-  { id: "mom-autumn", who: "mom", season: "autumn", name: "Берет и жёлтые сапожки", ref: null, draft: true,
+  { id: "mom-autumn", who: "mom", season: "autumn", name: "Берет и жёлтые сапожки", ref: BUNDLED_REFERENCES["mom-autumn"],
     en: `the plain red smooth cotton long-sleeve pullover and red-and-off-white striped pleated skirt, a soft red woven cotton beret (${PAL.red}) tilted slightly between the ears, short glossy yellow rubber boots (${PAL.yellow})`,
     keep: "cotton pullover, skirt, beret, boots", neg: ["trousers", "earmuffs"] },
   { id: "son-autumn", who: "son", season: "autumn", name: "Жёлтый дождевик и сапоги", ref: SON_REFERENCES["son-autumn"],
@@ -128,13 +141,13 @@ const OUTFITS = [
     keep: "cap, raincoat, shorts, boots", neg: ["sweater", "trousers", "sneakers"] },
 
   /* зима */
-  { id: "dad-winter", who: "dad", season: "winter", name: "Шапка, шарф, варежки", ref: "Rectangle-54.jpg",
+  { id: "dad-winter", who: "dad", season: "winter", name: "Шапка, шарф, варежки", ref: BUNDLED_REFERENCES["dad-winter"],
     en: `red knitted Christmas sweater (${PAL.red}) with an off-white chevron band across the chest and sleeves and small green fir-tree motifs (${PAL.green}) on the belly; red knitted beanie with off-white chevron bands and a fluffy red-and-white pompom; long red knitted scarf with off-white chevrons; red knitted mittens with a small off-white snowflake; no trousers, bare legs, barefoot`,
     keep: "sweater, beanie, scarf, mittens", neg: ["trousers", "chinos", "striped sweater", "Santa hat", "gloves with fingers"] },
   { id: "dad-winter-sw", who: "dad", season: "winter", name: "Только свитер", ref: null,
     en: `red knitted Christmas sweater (${PAL.red}) with an off-white chevron band across the chest and sleeves and small green fir-tree motifs (${PAL.green}) on the belly; no hat, no scarf, no mittens; no trousers, bare legs, barefoot`,
     keep: "sweater", neg: ["trousers", "chinos", "striped sweater", "hat", "scarf", "mittens"] },
-  { id: "mom-winter", who: "mom", season: "winter", name: "Свитер с сердцами, наушники, шарф", ref: "Rectangle-56.jpg",
+  { id: "mom-winter", who: "mom", season: "winter", name: "Свитер с сердцами, наушники, шарф", ref: BUNDLED_REFERENCES["mom-winter"],
     en: `red knitted Christmas sweater (${PAL.red}) with an off-white chevron band and two chevron-knit heart motifs on the chest; the same red-and-off-white striped pleated skirt; fluffy pastel pink earmuffs; long soft pink knitted scarf with a darker pink chevron pattern; barefoot`,
     keep: "sweater, skirt, earmuffs, scarf", neg: ["trousers", "hat", "beanie"] },
   { id: "son-winter", who: "son", season: "winter", name: "Шапка и зелёный шарф", ref: SON_REFERENCES["son-winter"], noCap: true,
@@ -317,6 +330,6 @@ const CHECKLIST = [
   "Рост совпадает с семьёй: мама ≈ 88%, сын ≈ 67% от папы"
 ];
 
-return { PAL, SON_REFERENCES, SON_REFERENCE_REVISION, FACE_SHAPE, BODY_SHAPE, BODY_TURNS, GAZES, NEWYEAR_REF, STYLE_REF, BASE_LOOK, STYLE, CHARS, SEASONS, OUTFITS, CAM, POSES, EMOTIONS, DEFAULT_EMO, OPEN_DEFAULT_EMO,
+return { PAL, BUNDLED_REFERENCES, REFERENCE_REVISIONS, SON_REFERENCES, SON_REFERENCE_REVISION, FACE_SHAPE, BODY_SHAPE, BODY_TURNS, GAZES, NEWYEAR_REF, STYLE_REF, BASE_LOOK, STYLE, CHARS, SEASONS, OUTFITS, CAM, POSES, EMOTIONS, DEFAULT_EMO, OPEN_DEFAULT_EMO,
   LOCATIONS, LIGHTS, FRAMES, CAMERAS, TEXTZONE, ACTIONS, NEG_BASE, NEG_TEETH, NEG_GROUP, NEG_TPOSE, LINEUP_REF, CHECKLIST };
 })();

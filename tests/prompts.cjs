@@ -63,7 +63,7 @@ for (const whos of [
     assert.ok(result.prompt.includes(C.BODY_SHAPE));
     assert.ok(result.prompt.includes("latest style image takes priority"));
     assert.ok(result.prompt.includes("Do not copy its waving pose"));
-    assert.ok(result.refs.some((r) => r.file === "capybara-style-v2.png"));
+    assert.ok(result.refs.some((r) => r.file === C.STYLE_REF.file));
     if (season === "newyear")
       assert.ok(result.prompt.includes("thick individual yarn loops"));
     else assert.ok(result.prompt.includes("smooth lightweight cotton fabric"));
@@ -98,7 +98,10 @@ for (const whos of [
           ),
         );
       assert.equal(result.warnings.length, 0);
-      assert.ok(fs.statSync("assets/figma/capybara-style-v2.png").size > 0);
+      assert.ok(
+        fs.statSync(require("node:path").join("assets/figma", C.STYLE_REF.file))
+          .size > 0,
+      );
     }
   }
 }

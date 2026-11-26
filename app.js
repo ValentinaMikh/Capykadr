@@ -235,35 +235,33 @@
   /* Four design steps share the existing prompt model and Supabase persistence. */
   const ART = "assets/figma/";
   let BASE_ART = {
-    dad: "245ef.png",
-    mom: "b44e6.png",
+    dad: C.BUNDLED_REFERENCES["dad-base"],
+    mom: C.BUNDLED_REFERENCES["mom-base"],
     son: C.SON_REFERENCES["son-base"],
   };
   let SEASON_ART = {
     spring: BASE_ART,
     summer: {
-      dad: "e1ec0.png",
-      mom: "a7e7b.png",
+      dad: C.BUNDLED_REFERENCES["dad-summer"],
+      mom: C.BUNDLED_REFERENCES["mom-summer"],
       son: C.SON_REFERENCES["son-summer"],
     },
     autumn: {
-      dad: "1a8e0.png",
-      mom: "b8570.png",
+      dad: C.BUNDLED_REFERENCES["dad-autumn"],
+      mom: C.BUNDLED_REFERENCES["mom-autumn"],
       son: C.SON_REFERENCES["son-autumn"],
     },
     winter: {
-      dad: "cc67a.png",
-      mom: "e77ec.png",
+      dad: C.BUNDLED_REFERENCES["dad-winter"],
+      mom: C.BUNDLED_REFERENCES["mom-winter"],
       son: C.SON_REFERENCES["son-winter"],
     },
   };
   let REF_ART = {
-    "dad-base": "07558.png",
-    "mom-base": "2cbd4.png",
-    ...C.SON_REFERENCES,
+    ...C.BUNDLED_REFERENCES,
     lineup: "e1d62.png",
-    "newyear-outfit": "capybara-style-v2.png",
-    "style-reference": "capybara-style-v2.png",
+    "newyear-outfit": C.NEWYEAR_REF.file,
+    "style-reference": C.STYLE_REF.file,
   };
   const CURRENT_ART = { base: BASE_ART, seasons: SEASON_ART, refs: REF_ART };
   const ORIGINAL_ART = {
@@ -408,12 +406,12 @@
   }
   function familyPreview() {
     if (SEASON === "newyear")
-      return `<div class="family-preview newyear"><img class="newyear-outfit-preview" src="${ART}${CAST.size === 1 && CAST.has("son") ? C.SON_REFERENCES["son-newyear"] : "capybara-style-v2.png"}" alt="Новогодний образ: красная шапка, свитер с белым зимним узором и зелёный шарф"><p class="newyear-outfit-caption">Одежда для выбранных персонажей</p></div>`;
+      return `<div class="family-preview newyear"><img class="newyear-outfit-preview" src="${ART}${CAST.size === 1 && CAST.has("son") ? C.SON_REFERENCES["son-newyear"] : C.NEWYEAR_REF.file}" alt="Новогодний образ: красная шапка, свитер с белым зимним узором и зелёный шарф"><p class="newyear-outfit-caption">Одежда для выбранных персонажей</p></div>`;
     const selected = WHO.filter((w) => CAST.has(w));
     return `<div class="family-preview ${esc(SEASON)}"><div class="family-art" data-count="${selected.length}">${selected
       .map(
         (w, i) =>
-          `<div class="family-${w} ${w === "son" ? (VERSION === 2 ? "new-son-reference" : !SEASON || SEASON === "spring" ? "base-son" : "") : ""}"${selected.length < 3 ? ` style="--family-center: ${selected.length === 1 ? 50 : i === 0 ? 35 : 65}%"` : ""}>${art((SEASON_ART[SEASON] || BASE_ART)[w], "", C.CHARS[w].name)}</div>`,
+          `<div class="family-${w} ${VERSION === 2 ? "new-family-reference" + (w === "son" ? " new-son-reference" : "") : w === "son" && (!SEASON || SEASON === "spring") ? "base-son" : ""}"${selected.length < 3 ? ` style="--family-center: ${selected.length === 1 ? 50 : i === 0 ? 35 : 65}%"` : ""}>${art((SEASON_ART[SEASON] || BASE_ART)[w], "", C.CHARS[w].name)}</div>`,
       )
       .join(
         "",
@@ -438,7 +436,7 @@
     el.dataset.motionStep = String(STEP);
     let h = "";
     if (STEP === 0) {
-      h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${w === "son" ? (VERSION === 2 ? "new-son-reference" : "base-son") : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
+      h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${VERSION === 2 ? "new-family-reference" + (w === "son" ? " new-son-reference" : "") : w === "son" ? "base-son" : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
     } else if (STEP === 1) {
       h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" ${VERSION === 1 && s.id === "newyear" ? 'disabled title="Доступно в версии 2"' : ""} aria-checked="${SEASON === s.id}">${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
     } else if (STEP === 2) {
@@ -719,8 +717,8 @@
       if (r.id === V.settingId || VERSION === 1) return;
       // Version 1 is immutable; later uploads only replace version 2 references.
       if (
-        C.SON_REFERENCES[r.id] &&
-        !(Date.parse(r.updated_at) > Date.parse(C.SON_REFERENCE_REVISION))
+        C.BUNDLED_REFERENCES[r.id] &&
+        !(Date.parse(r.updated_at) > Date.parse(C.REFERENCE_REVISIONS[r.id]))
       )
         return;
       REFS[r.id] = r.image_path;
@@ -735,7 +733,7 @@
         if (u?.signedUrl) REFURL[keys[i]] = u.signedUrl;
       });
     }
-    const bundled = VERSION === 1 ? REF_ART : C.SON_REFERENCES;
+    const bundled = VERSION === 1 ? REF_ART : C.BUNDLED_REFERENCES;
     Object.entries(bundled).forEach(([key, file]) => {
       if (!REFURL[key]) REFURL[key] = ART + file;
     });

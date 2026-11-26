@@ -2603,3 +2603,33 @@ button:focus-visible,
     padding: 20px;
   }
 }
+
+/* Complete version 2 silhouettes: preserve the PNG proportions and family scale. */
+.portrait.new-family-reference {
+  inset: 0;
+}
+.new-family-reference img {
+  object-fit: contain;
+}
+.family-dad.new-family-reference {
+  left: -20.37%;
+  top: 14.286%;
+  width: 86.597%;
+  height: 83%;
+}
+.family-mom.new-family-reference {
+  left: 16.236%;
+  top: 22%;
+  width: 72%;
+  height: 73%;
+}
+.family-son.new-family-reference {
+  left: 51.62%;
+  top: 40%;
+  width: 56.4%;
+  height: 56%;
+}
+body[data-constructor-version="2"] .reference-grid > button > img,
+body[data-constructor-version="2"] .refcell img {
+  object-fit: contain;
+}
