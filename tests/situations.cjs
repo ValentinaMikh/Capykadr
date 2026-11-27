@@ -17,9 +17,9 @@ const groups = [
 ];
 let count = 0,
   builds = 0;
-for (const season of ["spring", "summer", "autumn", "winter", "newyear"]) {
+for (const season of ["spring", "summer", "autumn", "winter"]) {
   const catalog = scenes.forSeason(season);
-  assert.equal(catalog.length, season === "newyear" ? 12 : 10);
+  assert.equal(catalog.length, season === "winter" ? 22 : 10);
   assert.equal(new Set(catalog.map((s) => s.id)).size, catalog.length);
   for (const scene of catalog) {
     count++;
@@ -66,7 +66,7 @@ for (const season of ["spring", "summer", "autumn", "winter", "newyear"]) {
         1,
         "scene not duplicated",
       );
-      if (scene.id === "gift-card" && whos.length === 1)
+      if (scene.id.endsWith("gift-card") && whos.length === 1)
         assert.ok(result.prompt.includes("facing the viewer"));
       for (const mode of ["neutral", "reference"]) {
         const white = B.build({ ...state, outputMode: mode });

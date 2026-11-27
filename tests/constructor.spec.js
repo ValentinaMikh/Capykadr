@@ -97,6 +97,22 @@ async function mockAccount(page, signedIn = true, gallery = {}) {
     { signedIn, gallery },
   );
 }
+// Old saved New Year drafts remain readable even though the season button is gone.
+async function restoreLegacyNewYear(page) {
+  await page.evaluate(() => {
+    const state = JSON.parse(localStorage.getItem("capykadr-state-v1"));
+    state.designSeason = "newyear";
+    state.designScene = "";
+    state.location = "newyear";
+    state.extra = "";
+    state.chars.forEach((char) => {
+      char.outfit = char.who + "-newyear";
+    });
+    localStorage.setItem("capykadr-state-v1", JSON.stringify(state));
+  });
+  await page.reload();
+  await page.locator('[data-step="1"]').click();
+}
 async function openFamily(page, gallery = {}) {
   await mockAccount(page, true, gallery);
   await page.goto("/");
@@ -221,7 +237,7 @@ test("complete family, every season, scene, references, custom prompt and persis
       ),
     );
   }
-  await expect(page.locator('[data-season="newyear"]')).toBeEnabled();
+  await expect(page.locator('[data-season="newyear"]')).toHaveCount(0);
   await page.locator('[data-season="autumn"]').click();
   await page.locator("#chooseBtn").click();
   await expect(page.locator("#chooseBtn")).toBeDisabled();
@@ -823,7 +839,7 @@ test("New Year uses the supplied outfit reference and survives reload", async ({
 }, testInfo) => {
   await openFamily(page);
   await page.locator("#chooseBtn").click();
-  await page.locator('[data-season="newyear"]').click();
+  await restoreLegacyNewYear(page);
   await expect(page.locator(".newyear-outfit-preview")).toBeVisible();
   await expect(page.locator(".newyear-outfit-preview")).toHaveAttribute(
     "src",
@@ -1018,7 +1034,7 @@ for (const width of [1440, 420])
     await page.setViewportSize({ width, height: 1080 });
     await openFamily(page);
     await page.locator("#chooseBtn").click();
-    await page.locator('[data-season="newyear"]').click();
+    await restoreLegacyNewYear(page);
     await page.locator("#chooseBtn").click();
     await page.getByLabel("На белом фоне", { exact: true }).check();
     await expect(page.locator(".scene-grid")).toHaveCount(0);
@@ -1103,7 +1119,8 @@ for (const width of [1440, 390])
     await page.locator("#chooseBtn").click();
     for (const [season, file] of cases) {
       await page.locator('[data-step="1"]').click();
-      await page.locator(`[data-season="${season}"]`).click();
+      if (season === "newyear") await restoreLegacyNewYear(page);
+      else await page.locator(`[data-season="${season}"]`).click();
       if (season !== "newyear") {
         await expect(page.locator(".family-son img")).toHaveAttribute(
           "src",
@@ -1223,7 +1240,7 @@ test("admin switches the whole team, preserves drafts and restores current son i
     await colleague.locator('[data-cast="dad"]').click();
     await colleague.locator("#chooseBtn").click();
     await colleague.locator('[data-season="winter"]').click();
-    await expect(colleague.locator('[data-season="newyear"]')).toBeDisabled();
+    await expect(colleague.locator('[data-season="newyear"]')).toHaveCount(0);
     await colleague.locator("#chooseBtn").click();
     await expect(
       colleague.getByLabel("На белом фоне", { exact: true }),
@@ -1765,25 +1782,27 @@ for (const width of [390, 1440])
     await page.setViewportSize({ width, height: 1080 });
     await openFamily(page);
     await page.locator("#chooseBtn").click();
+    await expect(page.locator('[data-season="newyear"]')).toHaveCount(0);
+    await expect(page.locator(".season-choice")).toHaveCount(4);
     const cases = [
       ["spring", "seedlings", "seedling"],
       ["summer", "pool-game", "beach ball"],
       ["autumn", "pie", "apple slices"],
       ["winter", "gingerbread", "gingerbread"],
-      ["newyear", "gift-card", "blank gift card"],
+      ["winter", "holiday-gift-card", "blank gift card"],
     ];
     for (const [season, id, phrase] of cases) {
       await page.locator('[data-step="1"]').click();
       await page.locator(`[data-season="${season}"]`).click();
       await page.locator('[data-step="2"]').click();
       await expect(page.locator(".scene-choice")).toHaveCount(
-        season === "newyear" ? 12 : 10,
+        season === "winter" ? 22 : 10,
       );
       await expect(page.locator('[data-scene="pool-game"]')).toHaveCount(
         season === "summer" ? 1 : 0,
       );
       await page.locator(`[data-scene="${id}"]`).click();
-      if (season === "newyear")
+      if (id === "holiday-gift-card")
         await capture(page, testInfo, "newyear-situations-" + width);
       await page.locator("#chooseBtn").click();
       await expect(page.locator(".prompt-panel pre")).toContainText(phrase);
@@ -1799,11 +1818,10 @@ for (const width of [390, 1440])
     }
     await page.reload();
     await page.locator('[data-step="2"]').click();
-    await expect(page.locator('[data-scene="gift-card"]')).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    await page.locator('[data-scene="newyear-photo"]').click();
+    await expect(
+      page.locator('[data-scene="holiday-gift-card"]'),
+    ).toHaveAttribute("aria-pressed", "true");
+    await page.locator('[data-scene="holiday-newyear-photo"]').click();
     expect(
       await page.locator(".seasonal-scenes").evaluate((el) => el.scrollTop),
     ).toBeGreaterThan(0);
@@ -1811,7 +1829,9 @@ for (const width of [390, 1440])
     await page.locator('[data-season="summer"]').click();
     await page.locator('[data-step="2"]').click();
     await expect(page.locator("#chooseBtn")).toBeDisabled();
-    await expect(page.locator('[data-scene="gift-card"]')).toHaveCount(0);
+    await expect(page.locator('[data-scene="holiday-gift-card"]')).toHaveCount(
+      0,
+    );
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBeLessThanOrEqual(width);
@@ -1824,9 +1844,9 @@ test("single-character gift cards do not request an unselected recipient", async
   await page.goto("/");
   await page.locator('[data-cast="dad"]').click();
   await page.locator("#chooseBtn").click();
-  await page.locator('[data-season="newyear"]').click();
+  await page.locator('[data-season="winter"]').click();
   await page.locator("#chooseBtn").click();
-  await page.locator('[data-scene="gift-card"]').click();
+  await page.locator('[data-scene="holiday-gift-card"]').click();
   await page.locator("#chooseBtn").click();
   await expect(page.locator(".prompt-panel pre")).toContainText(
     "facing the viewer at chest height",

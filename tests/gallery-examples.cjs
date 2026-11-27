@@ -109,3 +109,24 @@ assert.equal(
 console.log(
   "Gallery example checks passed: parameter ranking, seasons, characters, versions, output modes, hidden/malformed rows, unique photos, rotation and unavailable images.",
 );
+
+const winterTarget = {
+  ...target,
+  designSeason: "winter",
+  designScene: "holiday-gift-card",
+  chars: [{ who: "dad", outfit: "dad-winter", pose: "stand", emo: "auto" }],
+};
+const oldHoliday = photo(
+  "holiday",
+  {},
+  {
+    designSeason: "newyear",
+    designScene: "gift-card",
+    chars: [{ who: "dad", outfit: "dad-newyear", pose: "stand", emo: "auto" }],
+  },
+);
+assert.deepEqual(ids(select([oldHoliday], winterTarget)), ["holiday"]);
+assert.equal(
+  select([oldHoliday], { ...winterTarget, designSeason: "summer" }).length,
+  0,
+);
