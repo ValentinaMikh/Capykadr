@@ -291,7 +291,7 @@ body {
   color: #fff;
   flex: none;
 }
-.season-choice:last-child {
+.season-choice[data-season="newyear"] {
   margin-top: 9px;
 }
 .season-wash {
@@ -323,7 +323,7 @@ body {
   line-height: 0.87;
   letter-spacing: -0.01em;
 }
-.season-choice:last-child .season-name {
+.season-choice[data-season="newyear"] .season-name {
   left: 84px;
   right: 99px;
   top: 21px;
@@ -941,7 +941,7 @@ fieldset {
     max-width: 306px;
     justify-self: center;
   }
-  .season-choice:last-child {
+  .season-choice[data-season="newyear"] {
     margin-top: 0;
   }
   .family-preview {
@@ -1123,7 +1123,7 @@ fieldset {
   .season-name {
     top: 29px;
   }
-  .season-choice:last-child .season-name {
+  .season-choice[data-season="newyear"] .season-name {
     top: 17px;
   }
   .season-mark {

@@ -606,7 +606,16 @@ window.CapyScenes = (() => {
     scenes.forEach((scene) => {
       scene.season = season;
     });
-  const forSeason = (season) => catalog[season || "spring"] || [];
+  // New Year is a winter story group, while historic saved states keep their IDs.
+  const winterStories = [
+    ...catalog.winter,
+    ...catalog.newyear.map((scene) => ({
+      ...scene,
+      id: `holiday-${scene.id}`,
+    })),
+  ];
+  const forSeason = (season) =>
+    season === "winter" ? winterStories : catalog[season || "spring"] || [];
   const find = (id, season) =>
     forSeason(season).find((scene) => scene.id === id);
   function describe(scene, chars) {

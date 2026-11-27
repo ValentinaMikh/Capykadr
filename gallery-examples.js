@@ -10,8 +10,11 @@ window.CapyExamples = (() => {
   ]);
   const seasonOf = (id) => {
     const season = String(id || "").split("-")[1];
-    return seasons.has(season) ? (season === "base" ? "spring" : season) : null;
+    return seasons.has(season) ? canonicalSeason(season) : null;
   };
+  const canonicalSeason = (season) =>
+    season === "newyear" ? "winter" : season === "base" ? "spring" : season;
+  const sceneId = (id) => String(id || "").replace(/^holiday-/, "");
   const castOf = (state) =>
     [...new Set((state.chars || []).map((c) => c.who))].sort().join(",");
   function score(publication, target) {
@@ -44,11 +47,11 @@ window.CapyExamples = (() => {
     const savedSeason = clothingSeasons.length
       ? clothingSeasons
       : state.designSeason
-        ? [state.designSeason]
+        ? [canonicalSeason(state.designSeason)]
         : [];
     if (
       target.designSeason &&
-      savedSeason.some((s) => s !== target.designSeason)
+      savedSeason.some((s) => s !== canonicalSeason(target.designSeason))
     )
       return null;
     let value =
@@ -71,7 +74,9 @@ window.CapyExamples = (() => {
         !(key === "designScene" && target[key] === "custom") &&
         target[key] != null &&
         target[key] !== "" &&
-        state[key] === target[key]
+        (key === "designScene"
+          ? sceneId(state[key]) === sceneId(target[key])
+          : state[key] === target[key])
       )
         value += weight;
     for (const char of target.chars) {
@@ -82,7 +87,13 @@ window.CapyExamples = (() => {
       if (other.object && other.object === char.object) value += 4;
     }
     for (const key of ["extra", "product"])
-      if (target[key] && state[key] === target[key]) value += 8;
+      if (
+        target[key] &&
+        (key === "designScene"
+          ? sceneId(state[key]) === sceneId(target[key])
+          : state[key] === target[key])
+      )
+        value += 8;
     return value;
   }
   function select(items, target, usage = new Map(), excluded = new Set()) {

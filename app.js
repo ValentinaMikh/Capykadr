@@ -292,7 +292,6 @@
     { id: "summer", name: "Лето", wash: "2acd9.svg", icon: "d8713.svg" },
     { id: "autumn", name: "Осень", wash: "88ccf.svg", icon: "ce611.svg" },
     { id: "winter", name: "Зима", wash: "e7d57.svg", icon: "3441b.svg" },
-    { id: "newyear", name: "Новый<br>год", wash: "b8585.svg" },
   ];
   const SCENES = [
     { id: "walk", name: "Прогулка", pose: "walk" },
@@ -530,7 +529,7 @@
     if (STEP === 0) {
       h = `<div class="character-grid">${WHO.map((w) => `<button type="button" class="character-choice ${w}" data-cast="${w}" aria-pressed="${CAST.has(w)}"><span class="character-image"><span class="portrait ${VERSION === 2 ? "new-family-reference" + (w === "son" ? " new-son-reference" : "") : w === "son" ? "base-son" : ""}">${art(BASE_ART[w], "", C.CHARS[w].name)}</span>${mark(CAST.has(w))}</span><span class="character-name">${C.CHARS[w].name}</span></button>`).join("")}</div>`;
     } else if (STEP === 1) {
-      h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" ${VERSION === 1 && s.id === "newyear" ? 'disabled title="Доступно в версии 2"' : ""} aria-checked="${SEASON === s.id}">${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${SEASON === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
+      h = `<div class="season-layout"><div class="season-list" role="radiogroup" aria-label="Сезон">${SEASONS.map((s) => `<button type="button" class="season-choice" role="radio" data-season="${s.id}" ${VERSION === 1 && s.id === "newyear" ? 'disabled title="Доступно в версии 2"' : ""} aria-checked="${(SEASON === "newyear" ? "winter" : SEASON) === s.id}">${art(s.wash, "season-wash")}${s.icon ? (s.id === "summer" ? `<picture><source media="(min-width: 1920px)" srcset="${ART}b9bf6.svg">${art(s.icon, "season-icon")}</picture>` : art(s.icon, "season-icon")) : `<span class="tree-parts">${["13c4a.svg", "0cc09.svg", "4d10b.svg", "b7f09.svg"].map((n, i) => art(n, "tree-" + i)).join("")}</span>`}<span class="season-name">${s.name}</span><span class="season-mark">${(SEASON === "newyear" ? "winter" : SEASON) === s.id ? art("229a2.svg") : ""}</span></button>`).join("")}</div>${familyPreview()}${examples()}</div>`;
     } else if (STEP === 2) {
       h = `<div class="scene-workspace">${whiteControls()}${
         S.outputMode === "scene"
